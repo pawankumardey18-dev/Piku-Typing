@@ -55,7 +55,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const googleProvider = new GoogleAuthProvider();
+    const googleProvider   = new GoogleAuthProvider();
     const facebookProvider = new FacebookAuthProvider();
     const microsoftProvider = new OAuthProvider('microsoft.com');
 
@@ -117,6 +117,14 @@
         <button class="btn mode-btn" data-mode="code">💻 Code</button>
       </div>
 
+      <!-- 🆕 ADDITION 1 — Difficulty Selector -->
+      <div class="control-label">🎯 Difficulty</div>
+      <div class="button-group" id="difficultyGroup">
+        <button class="btn diff-btn active" data-diff="easy">🌱 Easy</button>
+        <button class="btn diff-btn" data-diff="medium">⚡ Medium</button>
+        <button class="btn diff-btn" data-diff="hard">🔥 Hard</button>
+      </div>
+
       <div class="control-label">⏱️ Time</div>
       <div class="button-group" id="timeGroup">
         <button class="btn time-btn" data-time="15">15s</button>
@@ -133,7 +141,15 @@
     <!-- Typing Test Card -->
     <div class="card" id="testCard">
       <div id="capsWarning" class="caps-warning">⚠️ Caps Lock is ON</div>
+
+      <!-- 🆕 ADDITION 2 — Progress Bar -->
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progressBarFill"></div>
+      </div>
+
       <div class="typing-display" id="typingDisplay"></div>
+
+      <!-- Hidden input — FIXED position to prevent mobile scroll jerk -->
       <input
         type="text"
         class="hidden-input"
@@ -142,7 +158,16 @@
         autocorrect="off"
         autocapitalize="none"
         spellcheck="false"
+        inputmode="text"
+        readonly
       >
+
+      <!-- 🆕 ADDITION 3 — Words Remaining Counter -->
+      <div class="test-meta">
+        <div class="words-remaining" id="wordsRemaining"></div>
+        <div class="restart-hint" id="restartHint"></div>
+      </div>
+
       <div class="stats">
         <span class="stat-badge" id="timerDisplay">⏳ 30s</span>
         <span class="stat-badge" id="liveWpm">⚡ — WPM</span>
@@ -174,7 +199,6 @@
           <h3>🏆 Leaderboard</h3>
           <button class="btn btn-sm" id="clearLeaderboardBtn">Clear</button>
         </div>
-        <!-- Tab toggle: Personal / Global -->
         <div class="lb-tabs">
           <button class="lb-tab active" id="lbTabPersonal">Personal</button>
           <button class="lb-tab" id="lbTabGlobal">🌍 Global</button>
@@ -248,7 +272,6 @@
       <div class="divider"><span>or continue with</span></div>
 
       <div class="oauth-buttons">
-        <!-- Google -->
         <button class="oauth-btn" id="oauthGoogle" style="background:#fff;" title="Sign in with Google">
           <svg width="26" height="26" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
@@ -257,9 +280,7 @@
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
           </svg>
         </button>
-        <!-- Facebook -->
-        <button class="oauth-btn" id="oauthFacebook" style="background:#1877F2; color:#fff; font-size:1.6rem;" title="Sign in with Facebook">f</button>
-        <!-- Microsoft -->
+        <button class="oauth-btn" id="oauthFacebook" style="background:#1877F2;color:#fff;font-size:1.6rem;" title="Sign in with Facebook">f</button>
         <button class="oauth-btn" id="oauthMicrosoft" style="background:#fff;" title="Sign in with Microsoft">
           <div class="ms-grid">
             <span style="background:#F25022;"></span>
