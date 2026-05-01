@@ -849,11 +849,10 @@ body.dark .success-msg {
   }
 }
 
-@media (max-width: 500px) {
-  .typing-display {
+.typing-display {
     font-size: 1.1rem;
     padding: 1rem;
-    min-height: 130px;
+    height: 160px;
   }
 
   .card { padding: 1.2rem; }
