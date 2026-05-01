@@ -323,7 +323,10 @@ body {
   background: var(--bg);
   padding: 2rem 2.2rem;
   border-radius: 22px;
-  min-height: 180px;
+  /* 🆕 FIX #4 — fixed height + scroll so cursor never goes offscreen */
+  height: 220px;
+  overflow-y: auto;
+  overflow-x: hidden;
   word-break: break-word;
   overflow-wrap: break-word;
   white-space: pre-wrap;
@@ -334,8 +337,7 @@ body {
   user-select: none;
   width: 100%;
   transition: border-color 0.2s;
-  /* 🆕 FIX 5 — prevent scroll into view causing jerk */
-  overflow: hidden;
+  scroll-behavior: smooth;
 }
 
 .typing-display:hover { border-color: var(--accent); }
