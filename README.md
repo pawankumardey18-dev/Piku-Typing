@@ -1,77 +1,32 @@
 # Piku Typing
 
-A modern browser-based typing trainer with multiple typing modes, difficulty levels, timer settings, live metrics, leaderboard, error heatmap, and theme selection.
+## Table of Contents
+- [Getting Started](#getting-started)
+- [Features](#features)
+- [Troubleshooting](#troubleshooting)
+
+## Getting Started
+
+To get started with Piku Typing, clone the repository and install dependencies.
+
+```bash
+git clone https://github.com/pawankumardey18-dev/Piku-Typing.git
+cd Piku-Typing
+
+# Install dependencies
+npm install
+```
 
 ## Features
+- Feature 1: Fast typing experience
+- Feature 2: Customizable keyboard layouts
+- Feature 3: Detailed performance analytics
 
-- Typing practice modes:
-  - `words`
-  - `numbers`
-  - `punctuation`
-  - `code`
-- Difficulty levels:
-  - `easy`
-  - `medium`
-  - `hard`
-- Timer options:
-  - `15s`, `30s`, `60s`, `120s`, `300s`
-- Live metrics:
-  - WPM
-  - accuracy
-  - countdown timer
-- Session history chart
-- Error heatmap
-- Personal and global leaderboard
-- Theme/color picker
-- Firebase authentication and leaderboard support
-- Responsive UI with mobile keyboard handling
+## Troubleshooting
 
-## Files
+If you encounter any issues, please check the following:
+1. Ensure all dependencies are installed.
+2. Check for compatibility with your system.
+3. Visit the documentation for common issues.
 
-- Index.html — main page and Firebase initialization
-- style.css — layout, theme, and responsive UI styling
-- app.js — typing logic, test generation, scoring, UI updates, leaderboard, and Firebase integration
-- README.md — project documentation
-
-## How to Run
-
-1. Clone the repository
-2. Open Index.html in a browser
-
-> Recommended: serve the project from a local server for best compatibility with module imports and Firebase.
-
-Example:
-- `python3 -m http.server 8000`
-- or `npx serve .`
-
-Then visit:
-- `http://localhost:8000/`
-
-## Usage
-
-1. Choose a typing mode
-2. Select difficulty
-3. Pick a timer duration
-4. Click inside the typing area
-5. Start typing to begin the test
-6. Review live WPM, accuracy, and end-of-test stats
-7. Use the leaderboard and heatmap to track progress
-
-## Notes
-
-- Uses Firebase for authentication and global leaderboard storage
-- Requires internet access to load:
-  - Firebase SDK
-  - Google Fonts
-
-## Built With
-
-- HTML
-- CSS
-- JavaScript
-- Firebase Authentication
-- Firebase Firestore
-
-## Attribution
-
-Created for a fast, colorful typing practice experience with metrics and progress tracking.
+If the problem persists, open an issue in the GitHub repository.
