@@ -1327,9 +1327,8 @@ body.dark .kb-key.finger-r-pinky  { background: #200a3a; color: #c48af4; }
   }
 
   .piku-chat-panel { width: 300px; }
-}
 
-.typing-display {
+  .typing-display {
     font-size: 1.1rem;
     padding: 1rem;
     height: 160px;
