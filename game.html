@@ -1,815 +1,447 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Piku Typing — Game</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='5' y='5' width='90' height='90' rx='20' fill='%233a6bc5'/><path d='M35 30V70M35 30H55C63.2843 30 70 36.7157 70 45C70 53.2843 63.2843 60 55 60H35' stroke='white' stroke-width='10' stroke-linecap='round'/></svg>">
+/* ==========================================
+   game.html — Falling Words Game
+   ========================================== */
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-
-  <style>
-    .game-wrapper {
-      display: grid;
-      grid-template-columns: 1fr 280px;
-      gap: 2rem;
-      align-items: start;
-    }
-
-    .game-arena {
-      background: var(--bg);
-      border: 2px solid var(--border-light);
-      border-radius: 22px;
-      height: 460px;
-      position: relative;
-      overflow: hidden;
-      margin: 1rem 0;
-      transition: border-color 0.3s;
-    }
-
-    .game-arena.danger { border-color: #c0241c; box-shadow: 0 0 20px rgba(192,36,28,0.2); }
-
-    /* Danger zone line */
-    .danger-line {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 50px;
-      background: linear-gradient(to top, rgba(192,36,28,0.08), transparent);
-      border-top: 1.5px dashed rgba(192,36,28,0.3);
-      pointer-events: none;
-    }
-
-    .falling-word {
-      position: absolute;
-      font-family: var(--font-mono);
-      font-size: 1.05rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      background: var(--surface);
-      border: 1.5px solid var(--border-light);
-      border-radius: 10px;
-      padding: 0.3rem 0.8rem;
-      white-space: nowrap;
-      cursor: default;
-      user-select: none;
-      transition: border-color 0.1s, box-shadow 0.1s;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    }
-
-    .falling-word.active {
-      border-color: var(--accent);
-      color: var(--accent);
-      box-shadow: 0 0 14px rgba(79,126,201,0.35);
-    }
-
-    .falling-word.missed {
-      border-color: #c0241c;
-      color: #c0241c;
-      opacity: 0.5;
-    }
-
-    .falling-word.correct-flash {
-      border-color: #2e8b57;
-      background: rgba(46,139,87,0.1);
-      color: #2e8b57;
-    }
-
-    /* Lives display */
-    .lives-display {
-      display: flex;
-      gap: 0.4rem;
-      font-size: 1.4rem;
-    }
-
-    .life { transition: opacity 0.3s; }
-    .life.lost { opacity: 0.2; filter: grayscale(1); }
-
-    /* Score popup */
-    .score-popup {
-      position: absolute;
-      font-family: var(--font-mono);
-      font-weight: 700;
-      font-size: 1rem;
-      color: #2e8b57;
-      pointer-events: none;
-      animation: floatUp 0.8s ease forwards;
-      z-index: 10;
-    }
-
-    @keyframes floatUp {
-      0%   { opacity: 1; transform: translateY(0); }
-      100% { opacity: 0; transform: translateY(-40px); }
-    }
-
-    /* Game over overlay */
-    .game-over-overlay {
-      position: absolute;
-      inset: 0;
-      background: rgba(0,0,0,0.75);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      border-radius: 20px;
-      gap: 0.8rem;
-      backdrop-filter: blur(4px);
-      z-index: 20;
-    }
-
-    .game-over-title {
-      font-family: var(--font-display);
-      font-size: 2.4rem;
-      font-weight: 800;
-      color: white;
-    }
-
-    .game-over-score {
-      font-size: 1.1rem;
-      color: rgba(255,255,255,0.8);
-      text-align: center;
-      line-height: 1.8;
-    }
-
-    /* Start overlay */
-    .start-overlay {
-      position: absolute;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      border-radius: 20px;
-      gap: 1rem;
-      backdrop-filter: blur(4px);
-      z-index: 20;
-    }
-
-    .start-title {
-      font-family: var(--font-display);
-      font-size: 2.2rem;
-      font-weight: 800;
-      color: white;
-      text-align: center;
-    }
-
-    .start-subtitle {
-      color: rgba(255,255,255,0.75);
-      font-size: 1rem;
-      text-align: center;
-      max-width: 300px;
-    }
-
-    /* Sidebar stats */
-    .sidebar-stat {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.7rem 0;
-      border-bottom: 1px dashed var(--border-light);
-      font-size: 0.95rem;
-    }
-
-    .sidebar-stat:last-child { border-bottom: none; }
-    .sidebar-stat-val { font-weight: 700; font-size: 1.1rem; }
-
-    /* High scores list */
-    .hs-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 0.45rem 0;
-      border-bottom: 1px dashed var(--border-light);
-      font-size: 0.88rem;
-    }
-    .hs-row:last-child { border-bottom: none; }
-
-    @media (max-width: 900px) {
-      .game-wrapper { grid-template-columns: 1fr; }
-    }
-  </style>
-</head>
-
-<body>
-
-  <!-- ========== HEADER ========== -->
-  <header class="main-header">
-    <a class="brand" href="Index.html">
-      <svg width="40" height="40" viewBox="0 0 100 100" fill="none">
-        <defs>
-          <linearGradient id="pg" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#3a6bc5"/>
-            <stop offset="100%" style="stop-color:#7351b5"/>
-          </linearGradient>
-        </defs>
-        <rect x="5" y="5" width="90" height="90" rx="20" fill="url(#pg)"/>
-        <rect x="5" y="5" width="90" height="45" rx="20" fill="white" fill-opacity="0.1"/>
-        <path d="M35 30V70M35 30H55C63.28 30 70 36.72 70 45C70 53.28 63.28 60 55 60H35"
-              stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-        <rect x="58" y="65" width="12" height="4" fill="white">
-          <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/>
-        </rect>
-      </svg>
-      <div class="logo">Piku Typing</div>
-    </a>
-    <div class="header-actions" id="headerActions">
-      <button class="btn" id="darkToggle">🌙 Dark</button>
-    </div>
-  </header>
-
-  <!-- ========== MAIN ========== -->
-  <main class="container">
-
-    <!-- Page title -->
-    <div class="card" style="text-align:center;padding:2rem;">
-      <h1 style="font-family:var(--font-display);font-size:2.4rem;font-weight:800;
-                 background:var(--gradient-brand);-webkit-background-clip:text;
-                 background-clip:text;color:transparent;margin-bottom:0.5rem;">
-        🎮 Falling Words
-      </h1>
-      <p style="color:var(--text-secondary);font-size:1rem;">
-        Type the falling words before they hit the bottom. Miss 3 and it's game over!
-      </p>
-    </div>
-
-    <div class="game-wrapper">
-
-      <!-- LEFT — Game -->
-      <div>
-
-        <!-- Stats bar -->
-        <div class="card" style="padding:1rem 1.8rem;">
-          <div style="display:flex;justify-content:space-between;
-                      align-items:center;flex-wrap:wrap;gap:1rem;">
-            <div class="game-stats" style="margin:0;">
-              <span class="game-stat" id="scoreDisplay">⭐ 0</span>
-              <span class="game-stat" id="levelDisplay">🎯 Level 1</span>
-              <span class="game-stat" id="comboDisplay">🔥 0x Combo</span>
-              <span class="game-stat" id="wpmDisplay">⚡ — WPM</span>
-            </div>
-            <div class="lives-display" id="livesDisplay"></div>
-          </div>
-        </div>
-
-        <!-- Arena -->
-        <div class="game-arena" id="gameArena">
-          <div class="danger-line"></div>
-
-          <!-- Start overlay -->
-          <div class="start-overlay" id="startOverlay">
-            <div style="font-size:3rem;">🎮</div>
-            <div class="start-title">Falling Words</div>
-            <div class="start-subtitle">
-              Type words before they reach the bottom.<br>
-              Miss 3 and game over!
-            </div>
-
-            <div style="display:flex;gap:0.8rem;flex-wrap:wrap;justify-content:center;
-                        margin-top:0.5rem;">
-              <button class="btn active" id="diffEasy"   data-diff="easy">🌱 Easy</button>
-              <button class="btn"        id="diffMedium" data-diff="medium">⚡ Medium</button>
-              <button class="btn"        id="diffHard"   data-diff="hard">🔥 Hard</button>
-            </div>
-
-            <button class="btn btn-primary" id="startGameBtn"
-                    style="width:auto;padding:0.9rem 3rem;font-size:1.1rem;margin-top:0.5rem;">
-              ▶ Start Game
-            </button>
-          </div>
-
-          <!-- Game over overlay (hidden) -->
-          <div class="game-over-overlay" id="gameOverOverlay" style="display:none;">
-            <div style="font-size:3rem;" id="gameOverEmoji">💀</div>
-            <div class="game-over-title">Game Over</div>
-            <div class="game-over-score" id="gameOverStats"></div>
-            <div style="display:flex;gap:1rem;margin-top:0.5rem;">
-              <button class="btn active" id="playAgainBtn"
-                      style="font-size:1rem;padding:0.7rem 2rem;">
-                ▶ Play Again
-              </button>
-              <button class="btn" id="changeSettingsBtn"
-                      style="font-size:1rem;padding:0.7rem 2rem;">
-                ⚙ Settings
-              </button>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Input -->
-        <div class="card" style="padding:1.2rem 1.8rem;">
-          <div class="game-input-wrap">
-            <input
-              type="text"
-              class="game-input"
-              id="gameInput"
-              placeholder="Type words here..."
-              autocomplete="off"
-              autocorrect="off"
-              autocapitalize="none"
-              spellcheck="false"
-            >
-            <button class="btn" id="pauseBtn" style="display:none;">⏸ Pause</button>
-          </div>
-          <div style="font-size:0.82rem;color:var(--text-secondary);margin-top:0.5rem;"
-               id="gameHint">
-            Choose difficulty and press Start Game
-          </div>
-        </div>
-
-      </div>
-
-      <!-- RIGHT — Sidebar -->
-      <div>
-
-        <!-- Live stats -->
-        <div class="card" style="margin-bottom:1.5rem;">
-          <div style="font-weight:700;margin-bottom:0.5rem;">📊 This Game</div>
-          <div class="sidebar-stat">
-            <span>Score</span>
-            <span class="sidebar-stat-val" id="sideScore">0</span>
-          </div>
-          <div class="sidebar-stat">
-            <span>Level</span>
-            <span class="sidebar-stat-val" id="sideLevel">1</span>
-          </div>
-          <div class="sidebar-stat">
-            <span>Words typed</span>
-            <span class="sidebar-stat-val" id="sideWords">0</span>
-          </div>
-          <div class="sidebar-stat">
-            <span>Best combo</span>
-            <span class="sidebar-stat-val" id="sideBestCombo">0</span>
-          </div>
-          <div class="sidebar-stat">
-            <span>Missed</span>
-            <span class="sidebar-stat-val" id="sideMissed">0</span>
-          </div>
-          <div class="sidebar-stat">
-            <span>WPM</span>
-            <span class="sidebar-stat-val" id="sideWpm">—</span>
-          </div>
-        </div>
-
-        <!-- High scores -->
-        <div class="card">
-          <div style="font-weight:700;margin-bottom:0.8rem;">🏆 High Scores</div>
-          <div id="highScoresList">
-            <div style="color:var(--text-secondary);font-size:0.88rem;">
-              Play a game to set a score!
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-    </div>
-  </main>
-
-  <footer>
-    © 2026 <strong>PikuNotes</strong> · All rights reserved
-  </footer>
-
-  <script src="nav.js"></script>
-  <script>
-  /* ==========================================
-     game.html — Falling Words Game
-     ========================================== */
-
-  /* ── Dark mode ── */
-  const darkToggle = document.getElementById('darkToggle');
-  let isDark = localStorage.getItem('pt_dark') === 'true';
+/* ── Dark mode ── */
+const darkToggle = document.getElementById('darkToggle');
+let isDark = localStorage.getItem('pt_dark') === 'true';
+document.body.classList.toggle('dark', isDark);
+darkToggle.textContent = isDark ? '☀️ Light' : '🌙 Dark';
+darkToggle.addEventListener('click', () => {
+  isDark = !isDark;
   document.body.classList.toggle('dark', isDark);
+  localStorage.setItem('pt_dark', isDark);
   darkToggle.textContent = isDark ? '☀️ Light' : '🌙 Dark';
-  darkToggle.addEventListener('click', () => {
-    isDark = !isDark;
-    document.body.classList.toggle('dark', isDark);
-    localStorage.setItem('pt_dark', isDark);
-    darkToggle.textContent = isDark ? '☀️ Light' : '🌙 Dark';
+});
+
+/* ── Word pools ── */
+const WORD_POOLS = {
+  easy: [
+    'the','be','to','of','and','a','in','that','have','it','for','not','on',
+    'with','he','as','you','do','at','this','but','his','by','from','they',
+    'we','say','her','she','or','an','will','my','one','all','would','there',
+    'what','so','up','out','if','about','who','get','go','me','when','make',
+    'can','like','time','no','just','him','know','take','good','some','see',
+    'cat','dog','run','fly','big','fun','hot','sun','red','box','cup','map'
+  ],
+  medium: [
+    'about','above','across','after','again','almost','always','because',
+    'before','between','change','check','choose','clear','close','could',
+    'create','decide','design','during','early','enough','every','example',
+    'explain','family','figure','final','first','follow','found','great',
+    'group','happy','heard','house','human','inside','large','later','learn',
+    'leave','light','listen','local','major','matter','maybe','moment','money',
+    'never','night','north','often','order','other','paper','party','place'
+  ],
+  hard: [
+    'acknowledge','approximately','circumstances','collaboration','communication',
+    'comprehensive','consequently','continuously','determination','differentiate',
+    'disappointment','documentation','effectiveness','establishment','extraordinary',
+    'fundamental','implementation','independence','infrastructure','intelligence',
+    'investigation','manufacturing','miscellaneous','opportunities','organizational',
+    'participation','particularly','perspective','philosophical','predominantly',
+    'sophisticated','straightforward','transformation','understanding','unfortunately'
+  ]
+};
+
+/* ── Config per difficulty ── */
+const DIFF_CONFIG = {
+  easy:   { fallDuration: 9000,  spawnInterval: 2000, maxWords: 4 },
+  medium: { fallDuration: 6500,  spawnInterval: 1500, maxWords: 5 },
+  hard:   { fallDuration: 4500,  spawnInterval: 1000, maxWords: 6 }
+};
+
+/* ── State ── */
+let gameRunning   = false;
+let gamePaused    = false;
+let score         = 0;
+let level         = 1;
+let lives         = 3;
+let combo         = 0;
+let bestCombo     = 0;
+let wordsTyped    = 0;
+let wordsMissed   = 0;
+let gameStartTime = null;
+let spawnTimer    = null;
+let levelTimer    = null;
+let activeWords   = [];
+let animFrameId   = null;
+let currentDiff   = 'easy';
+let lastSpawnTime = 0;
+
+const arena     = document.getElementById('gameArena');
+const gameInput = document.getElementById('gameInput');
+const pauseBtn  = document.getElementById('pauseBtn');
+const gameHint  = document.getElementById('gameHint');
+
+/* ── Difficulty selector ── */
+document.querySelectorAll('[data-diff]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentDiff = btn.dataset.diff;
+    document.querySelectorAll('[data-diff]').forEach(b =>
+      b.classList.toggle('active', b === btn));
   });
+});
 
-  /* ── Word pools ── */
-  const WORD_POOLS = {
-    easy: [
-      'the','be','to','of','and','a','in','that','have','it','for','not','on',
-      'with','he','as','you','do','at','this','but','his','by','from','they',
-      'we','say','her','she','or','an','will','my','one','all','would','there',
-      'what','so','up','out','if','about','who','get','go','me','when','make',
-      'can','like','time','no','just','him','know','take','good','some','see'
-    ],
-    medium: [
-      'about','above','across','after','again','almost','always','because',
-      'before','between','change','check','choose','clear','close','could',
-      'create','decide','design','during','early','enough','every','example',
-      'explain','family','figure','final','first','follow','found','great',
-      'group','happy','heard','house','human','inside','large','later','learn',
-      'leave','light','listen','local','major','matter','maybe','moment','money'
-    ],
-    hard: [
-      'acknowledge','approximately','circumstances','collaboration','communication',
-      'comprehensive','consequently','continuously','determination','differentiate',
-      'disappointment','documentation','effectiveness','establishment','extraordinary',
-      'fundamental','implementation','independence','infrastructure','intelligence',
-      'investigation','manufacturing','miscellaneous','opportunities','organizational',
-      'participation','particularly','perspective','philosophical','predominantly',
-      'sophisticated','straightforward','transformation','understanding','unfortunately'
-    ]
-  };
+/* ── Build lives ── */
+function buildLives() {
+  const el = document.getElementById('livesDisplay');
+  el.innerHTML = '';
+  for (let i = 0; i < 3; i++) {
+    const heart = document.createElement('span');
+    heart.className = 'life';
+    heart.textContent = '❤️';
+    el.appendChild(heart);
+  }
+}
 
-  /* ── Config per difficulty ── */
-  const DIFF_CONFIG = {
-    easy:   { fallDuration: 9000,  spawnInterval: 2200, maxWords: 4 },
-    medium: { fallDuration: 6500,  spawnInterval: 1600, maxWords: 5 },
-    hard:   { fallDuration: 4500,  spawnInterval: 1100, maxWords: 6 }
-  };
-
-  /* ── State ── */
-  let gameRunning   = false;
-  let gamePaused    = false;
-  let score         = 0;
-  let level         = 1;
-  let lives         = 3;
-  let combo         = 0;
-  let bestCombo     = 0;
-  let wordsTyped    = 0;
-  let wordsMissed   = 0;
-  let gameStartTime = null;
-  let spawnTimer    = null;
-  let levelTimer    = null;
-  let activeWords   = [];   /* { el, word, startTime, duration } */
-  let animFrameId   = null;
-  let currentDiff   = 'easy';
-
-  const arena      = document.getElementById('gameArena');
-  const gameInput  = document.getElementById('gameInput');
-  const pauseBtn   = document.getElementById('pauseBtn');
-  const gameHint   = document.getElementById('gameHint');
-
-  /* ── Difficulty selector ── */
-  document.querySelectorAll('[data-diff]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      currentDiff = btn.dataset.diff;
-      document.querySelectorAll('[data-diff]').forEach(b =>
-        b.classList.toggle('active', b === btn));
-    });
+function updateLivesDisplay() {
+  const hearts = document.querySelectorAll('.life');
+  hearts.forEach((h, i) => {
+    h.classList.toggle('lost', i >= lives);
   });
+}
 
-  /* ── Build lives ── */
-  function buildLives() {
-    const el = document.getElementById('livesDisplay');
-    el.innerHTML = '';
-    for (let i = 0; i < 3; i++) {
-      const heart = document.createElement('span');
-      heart.className = 'life' + (i >= lives ? ' lost' : '');
-      heart.textContent = '❤️';
-      el.appendChild(heart);
-    }
-  }
+/* ── Start game ── */
+document.getElementById('startGameBtn').addEventListener('click', startGame);
+document.getElementById('playAgainBtn').addEventListener('click', startGame);
+document.getElementById('changeSettingsBtn').addEventListener('click', () => {
+  document.getElementById('gameOverOverlay').style.display = 'none';
+  document.getElementById('startOverlay').style.display   = 'flex';
+  gameInput.value = '';
+});
 
-  function updateLivesDisplay() {
-    const hearts = document.querySelectorAll('.life');
-    hearts.forEach((h, i) => h.classList.toggle('lost', i >= lives));
-  }
+function startGame() {
+  score         = 0;
+  level         = 1;
+  lives         = 3;
+  combo         = 0;
+  bestCombo     = 0;
+  wordsTyped    = 0;
+  wordsMissed   = 0;
+  gameStartTime = Date.now();
+  lastSpawnTime = 0;
+  activeWords   = [];
+  gameRunning   = true;
+  gamePaused    = false;
 
-  /* ── Start game ── */
-  document.getElementById('startGameBtn').addEventListener('click', startGame);
-  document.getElementById('playAgainBtn').addEventListener('click', startGame);
-  document.getElementById('changeSettingsBtn').addEventListener('click', () => {
-    document.getElementById('gameOverOverlay').style.display = 'none';
-    document.getElementById('startOverlay').style.display   = 'flex';
-    gameInput.value = '';
-  });
+  /* clear leftover words */
+  arena.querySelectorAll('.falling-word').forEach(w => w.remove());
+  arena.querySelectorAll('.score-popup').forEach(w => w.remove());
 
-  function startGame() {
-    /* reset state */
-    score         = 0;
-    level         = 1;
-    lives         = 3;
-    combo         = 0;
-    bestCombo     = 0;
-    wordsTyped    = 0;
-    wordsMissed   = 0;
-    gameStartTime = Date.now();
-    activeWords   = [];
-    gameRunning   = true;
-    gamePaused    = false;
+  document.getElementById('startOverlay').style.display    = 'none';
+  document.getElementById('gameOverOverlay').style.display = 'none';
 
-    /* clear arena words */
-    arena.querySelectorAll('.falling-word').forEach(w => w.remove());
-    arena.querySelectorAll('.score-popup').forEach(w => w.remove());
+  gameInput.value = '';
+  gameInput.focus();
+  pauseBtn.style.display = 'inline-flex';
+  gameHint.textContent   = 'Type the falling words!';
 
-    document.getElementById('startOverlay').style.display   = 'none';
-    document.getElementById('gameOverOverlay').style.display = 'none';
+  buildLives();
+  updateScoreDisplay();
 
-    gameInput.value = '';
-    gameInput.focus();
-    pauseBtn.style.display = 'inline-flex';
-    gameHint.textContent   = 'Type the highlighted word!';
+  /* clear old timers */
+  clearInterval(spawnTimer);
+  clearInterval(levelTimer);
+  cancelAnimationFrame(animFrameId);
 
-    buildLives();
-    updateScoreDisplay();
+  /* level up every 25 seconds */
+  levelTimer = setInterval(levelUp, 25000);
 
-    /* spawn first word immediately */
-    spawnWord();
+  /* start game loop — spawning handled inside loop */
+  animFrameId = requestAnimationFrame(gameLoop);
+}
 
-    /* spawn timer */
-    const cfg = DIFF_CONFIG[currentDiff];
-    spawnTimer = setInterval(spawnWord, cfg.spawnInterval);
+/* ── Spawn word ── */
+function spawnWord() {
+  if (!gameRunning || gamePaused) return;
 
-    /* level up every 20 seconds */
-    levelTimer = setInterval(levelUp, 20000);
+  const cfg     = DIFF_CONFIG[currentDiff];
+  const arenaW  = arena.getBoundingClientRect().width;
 
-    /* animation loop */
-    animFrameId = requestAnimationFrame(gameLoop);
-  }
+  if (arenaW < 10) return; /* arena not rendered yet */
+  if (activeWords.length >= cfg.maxWords) return;
 
-  /* ── Spawn word ── */
-  function spawnWord() {
-    if (!gameRunning || gamePaused) return;
+  const pool    = WORD_POOLS[currentDiff];
+  const existing = activeWords.map(w => w.word);
 
-    const cfg = DIFF_CONFIG[currentDiff];
-    if (activeWords.length >= cfg.maxWords) return;
+  /* pick a word not already on screen */
+  let word;
+  let attempts = 0;
+  do {
+    word = pool[Math.floor(Math.random() * pool.length)];
+    attempts++;
+  } while (existing.includes(word) && attempts < 20);
 
-    const pool  = WORD_POOLS[currentDiff];
-    const word  = pool[Math.floor(Math.random() * pool.length)];
+  const el = document.createElement('div');
+  el.className   = 'falling-word';
+  el.textContent = word;
+  el.style.top   = '-60px';
 
-    /* avoid duplicates */
-    const existing = activeWords.map(w => w.word);
-    if (existing.includes(word) && pool.length > existing.length) return;
+  /* position word — wait for it to be in DOM to get width */
+  arena.appendChild(el);
 
-    const el = document.createElement('div');
-    el.className   = 'falling-word';
-    el.textContent = word;
-
-    /* random horizontal position */
-    const arenaW  = arena.clientWidth;
-    const wordW   = word.length * 11 + 24;
-    const maxLeft = Math.max(0, arenaW - wordW - 10);
+  /* use requestAnimationFrame to get real rendered width */
+  requestAnimationFrame(() => {
+    const wordW   = el.getBoundingClientRect().width || (word.length * 12 + 20);
+    const maxLeft = Math.max(10, arenaW - wordW - 10);
     const left    = Math.floor(Math.random() * maxLeft) + 5;
     el.style.left = left + 'px';
-    el.style.top  = '-50px';
-
-    arena.appendChild(el);
-
-    /* fall duration adjusted by level */
-    const duration = Math.max(
-      cfg.fallDuration - (level - 1) * 300,
-      currentDiff === 'hard' ? 2000 : currentDiff === 'medium' ? 3000 : 4000
-    );
-
-    activeWords.push({
-      el,
-      word,
-      startTime: Date.now(),
-      duration,
-      left
-    });
-  }
-
-  /* ── Game loop — move words ── */
-  function gameLoop() {
-    if (!gameRunning) return;
-    if (!gamePaused) {
-      const arenaH   = arena.clientHeight;
-      const toRemove = [];
-
-      activeWords.forEach((w, i) => {
-        const elapsed  = Date.now() - w.startTime;
-        const progress = elapsed / w.duration;
-        const top      = -50 + progress * (arenaH + 50);
-
-        w.el.style.top = top + 'px';
-
-        /* word reached bottom */
-        if (top > arenaH - 50) {
-          w.el.classList.add('missed');
-          setTimeout(() => w.el.remove(), 400);
-          toRemove.push(i);
-          missWord();
-        }
-      });
-
-      /* remove missed words from array */
-      toRemove.reverse().forEach(i => activeWords.splice(i, 1));
-
-      /* highlight active word (first one closest to bottom) */
-      highlightClosest();
-      updateScoreDisplay();
-    }
-
-    animFrameId = requestAnimationFrame(gameLoop);
-  }
-
-  /* ── Highlight closest word to bottom ── */
-  function highlightClosest() {
-    let closestIdx = -1;
-    let closestTop = -Infinity;
-
-    activeWords.forEach((w, i) => {
-      const top = parseFloat(w.el.style.top || '-50');
-      if (top > closestTop) { closestTop = top; closestIdx = i; }
-    });
-
-    activeWords.forEach((w, i) => {
-      w.el.classList.toggle('active', i === closestIdx);
-    });
-  }
-
-  /* ── Miss a word ── */
-  function missWord() {
-    wordsMissed++;
-    combo = 0;
-    lives = Math.max(0, lives - 1);
-    updateLivesDisplay();
-
-    /* shake arena */
-    arena.classList.add('danger');
-    setTimeout(() => arena.classList.remove('danger'), 600);
-
-    if (lives <= 0) endGame();
-  }
-
-  /* ── Input handler ── */
-  gameInput.addEventListener('input', () => {
-    if (!gameRunning || gamePaused) return;
-
-    const typed = gameInput.value.trim().toLowerCase();
-    if (!typed) return;
-
-    /* check against all active words */
-    const matchIdx = activeWords.findIndex(
-      w => w.word.toLowerCase() === typed
-    );
-
-    if (matchIdx !== -1) {
-      const matched = activeWords[matchIdx];
-
-      /* flash correct */
-      matched.el.classList.add('correct-flash');
-      setTimeout(() => matched.el.remove(), 200);
-
-      /* score popup */
-      showScorePopup(matched.el, `+${10 * (combo + 1)}`);
-
-      /* update stats */
-      combo++;
-      bestCombo  = Math.max(bestCombo, combo);
-      wordsTyped++;
-      score     += 10 * combo;
-
-      activeWords.splice(matchIdx, 1);
-      gameInput.value = '';
-
-      document.getElementById('sideBestCombo').textContent = bestCombo;
-      document.getElementById('sideWords').textContent     = wordsTyped;
-    }
-
-    /* partial match — highlight matching word */
-    activeWords.forEach(w => {
-      w.el.classList.toggle(
-        'active',
-        w.word.toLowerCase().startsWith(typed)
-      );
-    });
   });
 
-  /* ── Score popup ── */
-  function showScorePopup(wordEl, text) {
-    const popup = document.createElement('div');
-    popup.className   = 'score-popup';
-    popup.textContent = text;
-    popup.style.left  = wordEl.style.left;
-    popup.style.top   = wordEl.style.top;
-    arena.appendChild(popup);
-    setTimeout(() => popup.remove(), 800);
-  }
+  /* fall duration adjusted by level */
+  const baseDuration = DIFF_CONFIG[currentDiff].fallDuration;
+  const duration     = Math.max(
+    baseDuration - (level - 1) * 300,
+    currentDiff === 'hard' ? 2200 : currentDiff === 'medium' ? 3200 : 4500
+  );
 
-  /* ── Level up ── */
-  function levelUp() {
-    if (!gameRunning) return;
-    level++;
-    document.getElementById('sideLevel').textContent = level;
-
-    /* brief level up flash */
-    const flash = document.createElement('div');
-    flash.style.cssText = `
-      position:absolute;inset:0;display:flex;align-items:center;
-      justify-content:center;z-index:15;pointer-events:none;
-      font-family:var(--font-display);font-size:2rem;font-weight:800;
-      color:var(--accent);text-shadow:0 0 20px rgba(79,126,201,0.6);
-      animation:floatUp 1.2s ease forwards;
-    `;
-    flash.textContent = `⬆ Level ${level}!`;
-    arena.appendChild(flash);
-    setTimeout(() => flash.remove(), 1200);
-  }
-
-  /* ── Update score display ── */
-  function updateScoreDisplay() {
-    const elapsed = gameStartTime
-      ? (Date.now() - gameStartTime) / 60000 : 0;
-    const wpm = elapsed > 0
-      ? Math.round((wordsTyped / elapsed)) : 0;
-
-    document.getElementById('scoreDisplay').textContent  = `⭐ ${score}`;
-    document.getElementById('levelDisplay').textContent  = `🎯 Level ${level}`;
-    document.getElementById('comboDisplay').textContent  = `🔥 ${combo}x Combo`;
-    document.getElementById('wpmDisplay').textContent    = `⚡ ${wpm} WPM`;
-    document.getElementById('sideScore').textContent     = score;
-    document.getElementById('sideMissed').textContent    = wordsMissed;
-    document.getElementById('sideWpm').textContent       = wpm || '—';
-  }
-
-  /* ── Pause ── */
-  pauseBtn.addEventListener('click', () => {
-    gamePaused = !gamePaused;
-    pauseBtn.textContent = gamePaused ? '▶ Resume' : '⏸ Pause';
-    if (!gamePaused) gameInput.focus();
+  activeWords.push({
+    el,
+    word,
+    startTime: Date.now(),
+    duration,
+    reached: false
   });
+}
 
-  /* ── End game ── */
-  function endGame() {
-    gameRunning = false;
-    clearInterval(spawnTimer);
-    clearInterval(levelTimer);
-    cancelAnimationFrame(animFrameId);
-    pauseBtn.style.display = 'none';
+/* ── Game loop ── */
+function gameLoop(timestamp) {
+  if (!gameRunning) return;
 
-    /* remove all words */
-    setTimeout(() => {
-      arena.querySelectorAll('.falling-word').forEach(w => w.remove());
-    }, 500);
+  if (!gamePaused) {
+    const arenaH   = arena.getBoundingClientRect().height || 460;
+    const cfg      = DIFF_CONFIG[currentDiff];
+    const toRemove = [];
 
-    const elapsed = gameStartTime
-      ? (Date.now() - gameStartTime) / 60000 : 0;
-    const wpm = elapsed > 0 ? Math.round(wordsTyped / elapsed) : 0;
-
-    const emoji =
-      score >= 500 ? '🏆' :
-      score >= 200 ? '🔥' :
-      score >= 100 ? '⚡' : '💀';
-
-    document.getElementById('gameOverEmoji').textContent = emoji;
-    document.getElementById('gameOverStats').innerHTML   = `
-      Score: <strong>${score}</strong><br>
-      Level reached: <strong>${level}</strong><br>
-      Words typed: <strong>${wordsTyped}</strong><br>
-      Best combo: <strong>${bestCombo}x</strong><br>
-      WPM: <strong>${wpm}</strong>
-    `;
-
-    document.getElementById('gameOverOverlay').style.display = 'flex';
-
-    /* save high score */
-    saveHighScore(score, level, wordsTyped, wpm);
-  }
-
-  /* ── High scores ── */
-  function saveHighScore(score, level, words, wpm) {
-    const key = `pt_hs_${currentDiff}`;
-    let hs    = [];
-    try { hs = JSON.parse(localStorage.getItem(key) || '[]'); } catch {}
-
-    hs.push({
-      score, level, words, wpm,
-      date: new Date().toLocaleDateString()
-    });
-
-    hs.sort((a, b) => b.score - a.score);
-    hs.splice(5);
-    localStorage.setItem(key, JSON.stringify(hs));
-    renderHighScores();
-  }
-
-  function renderHighScores() {
-    const key  = `pt_hs_${currentDiff}`;
-    let hs     = [];
-    try { hs = JSON.parse(localStorage.getItem(key) || '[]'); } catch {}
-
-    const el = document.getElementById('highScoresList');
-    if (!hs.length) {
-      el.innerHTML = '<div style="color:var(--text-secondary);font-size:0.88rem;">Play a game to set a score!</div>';
-      return;
+    /* spawn check */
+    if (timestamp - lastSpawnTime > cfg.spawnInterval) {
+      spawnWord();
+      lastSpawnTime = timestamp;
     }
 
-    el.innerHTML = hs.map((h, i) => `
-      <div class="hs-row">
-        <span>${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`}
-          &nbsp;${h.date}</span>
-        <span style="font-weight:600;">⭐${h.score}</span>
-      </div>
-    `).join('');
+    /* move words */
+    activeWords.forEach((w, i) => {
+      const elapsed  = Date.now() - w.startTime;
+      const progress = Math.min(elapsed / w.duration, 1);
+      const top      = -60 + progress * (arenaH + 60);
+
+      w.el.style.top = top + 'px';
+
+      /* reached bottom */
+      if (top >= arenaH - 55 && !w.reached) {
+        w.reached = true;
+        w.el.classList.add('missed');
+        setTimeout(() => { if (w.el.parentNode) w.el.remove(); }, 400);
+        toRemove.push(i);
+        missWord();
+      }
+    });
+
+    toRemove.reverse().forEach(i => activeWords.splice(i, 1));
+
+    highlightClosest();
+    updateScoreDisplay();
   }
 
-  /* ── Init ── */
-  buildLives();
+  animFrameId = requestAnimationFrame(gameLoop);
+}
+
+/* ── Highlight closest word to bottom ── */
+function highlightClosest() {
+  let closestIdx = -1;
+  let closestTop = -Infinity;
+
+  activeWords.forEach((w, i) => {
+    const top = parseFloat(w.el.style.top || '-60');
+    if (top > closestTop) {
+      closestTop = top;
+      closestIdx = i;
+    }
+  });
+
+  activeWords.forEach((w, i) => {
+    w.el.classList.toggle('active', i === closestIdx);
+  });
+}
+
+/* ── Miss word ── */
+function missWord() {
+  wordsMissed++;
+  combo = 0;
+  lives = Math.max(0, lives - 1);
+  updateLivesDisplay();
+
+  arena.classList.add('danger');
+  setTimeout(() => arena.classList.remove('danger'), 600);
+
+  document.getElementById('sideMissed').textContent = wordsMissed;
+
+  if (lives <= 0) {
+    setTimeout(() => endGame(), 500);
+  }
+}
+
+/* ── Input handler ── */
+gameInput.addEventListener('input', () => {
+  if (!gameRunning || gamePaused) return;
+
+  const typed = gameInput.value.trim().toLowerCase();
+  if (!typed) return;
+
+  /* check for exact match */
+  const matchIdx = activeWords.findIndex(
+    w => w.word.toLowerCase() === typed
+  );
+
+  if (matchIdx !== -1) {
+    const matched = activeWords[matchIdx];
+
+    matched.el.classList.add('correct-flash');
+    showScorePopup(matched.el, `+${10 * Math.max(combo + 1, 1)}`);
+
+    setTimeout(() => { if (matched.el.parentNode) matched.el.remove(); }, 200);
+
+    combo++;
+    bestCombo  = Math.max(bestCombo, combo);
+    wordsTyped++;
+    score     += 10 * combo;
+
+    activeWords.splice(matchIdx, 1);
+    gameInput.value = '';
+
+    document.getElementById('sideBestCombo').textContent = bestCombo;
+    document.getElementById('sideWords').textContent     = wordsTyped;
+
+    return;
+  }
+
+  /* partial match highlight */
+  activeWords.forEach(w => {
+    const matches = w.word.toLowerCase().startsWith(typed);
+    w.el.classList.toggle('active', matches);
+  });
+});
+
+/* ── Score popup ── */
+function showScorePopup(wordEl, text) {
+  const popup = document.createElement('div');
+  popup.className   = 'score-popup';
+  popup.textContent = text;
+  popup.style.left  = wordEl.style.left || '50px';
+  popup.style.top   = wordEl.style.top  || '50px';
+  arena.appendChild(popup);
+  setTimeout(() => { if (popup.parentNode) popup.remove(); }, 900);
+}
+
+/* ── Level up ── */
+function levelUp() {
+  if (!gameRunning) return;
+  level++;
+
+  const flash = document.createElement('div');
+  flash.style.cssText = `
+    position:absolute;inset:0;display:flex;align-items:center;
+    justify-content:center;z-index:15;pointer-events:none;
+    font-family:var(--font-display);font-size:2rem;font-weight:800;
+    color:var(--accent);text-shadow:0 0 20px rgba(79,126,201,0.6);
+    animation:floatUp 1.4s ease forwards;
+  `;
+  flash.textContent = `⬆ Level ${level}!`;
+  arena.appendChild(flash);
+  setTimeout(() => { if (flash.parentNode) flash.remove(); }, 1400);
+}
+
+/* ── Update score display ── */
+function updateScoreDisplay() {
+  const elapsed = gameStartTime
+    ? (Date.now() - gameStartTime) / 60000 : 0;
+  const wpm = elapsed > 0
+    ? Math.round(wordsTyped / elapsed) : 0;
+
+  document.getElementById('scoreDisplay').textContent = `⭐ ${score}`;
+  document.getElementById('levelDisplay').textContent = `🎯 Level ${level}`;
+  document.getElementById('comboDisplay').textContent = `🔥 ${combo}x Combo`;
+  document.getElementById('wpmDisplay').textContent   = `⚡ ${wpm} WPM`;
+  document.getElementById('sideScore').textContent    = score;
+  document.getElementById('sideLevel').textContent    = level;
+  document.getElementById('sideMissed').textContent   = wordsMissed;
+  document.getElementById('sideWpm').textContent      = wpm || '—';
+}
+
+/* ── Pause ── */
+pauseBtn.addEventListener('click', () => {
+  gamePaused = !gamePaused;
+  pauseBtn.textContent = gamePaused ? '▶ Resume' : '⏸ Pause';
+  if (!gamePaused) gameInput.focus();
+});
+
+/* ── End game ── */
+function endGame() {
+  gameRunning = false;
+  clearInterval(spawnTimer);
+  clearInterval(levelTimer);
+  cancelAnimationFrame(animFrameId);
+  pauseBtn.style.display = 'none';
+
+  setTimeout(() => {
+    arena.querySelectorAll('.falling-word').forEach(w => w.remove());
+  }, 500);
+
+  const elapsed = gameStartTime
+    ? (Date.now() - gameStartTime) / 60000 : 0.001;
+  const wpm = Math.round(wordsTyped / elapsed);
+
+  const emoji =
+    score >= 500 ? '🏆' :
+    score >= 200 ? '🔥' :
+    score >= 100 ? '⚡' : '💀';
+
+  document.getElementById('gameOverEmoji').textContent = emoji;
+  document.getElementById('gameOverStats').innerHTML   = `
+    Score: <strong>${score}</strong><br>
+    Level reached: <strong>${level}</strong><br>
+    Words typed: <strong>${wordsTyped}</strong><br>
+    Best combo: <strong>${bestCombo}x</strong><br>
+    WPM: <strong>${wpm}</strong>
+  `;
+
+  document.getElementById('gameOverOverlay').style.display = 'flex';
+  saveHighScore(score, level, wordsTyped, wpm);
+}
+
+/* ── High scores ── */
+function saveHighScore(score, level, words, wpm) {
+  const key = `pt_hs_${currentDiff}`;
+  let hs = [];
+  try { hs = JSON.parse(localStorage.getItem(key) || '[]'); } catch {}
+  hs.push({ score, level, words, wpm, date: new Date().toLocaleDateString() });
+  hs.sort((a, b) => b.score - a.score);
+  hs.splice(5);
+  localStorage.setItem(key, JSON.stringify(hs));
   renderHighScores();
-  gameInput.focus();
-  </script>
+}
 
-</body>
-</html>
+function renderHighScores() {
+  const key = `pt_hs_${currentDiff}`;
+  let hs = [];
+  try { hs = JSON.parse(localStorage.getItem(key) || '[]'); } catch {}
+
+  const el = document.getElementById('highScoresList');
+  if (!hs.length) {
+    el.innerHTML = '<div style="color:var(--text-secondary);font-size:0.88rem;">Play a game to set a score!</div>';
+    return;
+  }
+
+  el.innerHTML = hs.map((h, i) => `
+    <div class="hs-row">
+      <span>${i===0?'🥇':i===1?'🥈':i===2?'🥉':`#${i+1}`} &nbsp;${h.date}</span>
+      <span style="font-weight:600;">⭐${h.score}</span>
+    </div>
+  `).join('');
+}
+
+/* ── Init ── */
+buildLives();
+renderHighScores();
+gameInput.focus();
