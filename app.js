@@ -1,5 +1,5 @@
 /* ==========================================
-   PIKU TYPING — app.js 
+   PIKU TYPING — app.js
    ========================================== */
 
 /* ── Accent Themes ── */
@@ -1145,6 +1145,9 @@ function openModal() {
   authModal.style.display = 'flex';
 }
 
-function closeModal() {
-  authModal.style.display = 'none';
+function clearErrors() {
+  ['errName','errEmail','errPassword','errConfirm'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '';
+  });
 }
