@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Piku Typing — Lesson</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='5' y='5' width='90' height='90' rx='20' fill='%233a6bc5'/><path d='M35 30V70M35 30H55C63.2843 30 70 36.7157 70 45C70 53.2843 63.2843 60 55 60H35' stroke='white' stroke-width='10' stroke-linecap='round'/></svg>">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- ========== HEADER ========== -->
+  <header class="main-header">
+    <a class="brand" href="Index.html">
+      <svg width="40" height="40" viewBox="0 0 100 100" fill="none">
+        <defs>
+          <linearGradient id="pg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#3a6bc5"/>
+            <stop offset="100%" style="stop-color:#7351b5"/>
+          </linearGradient>
+        </defs>
+        <rect x="5" y="5" width="90" height="90" rx="20" fill="url(#pg)"/>
+        <rect x="5" y="5" width="90" height="45" rx="20" fill="white" fill-opacity="0.1"/>
+        <path d="M35 30V70M35 30H55C63.28 30 70 36.72 70 45C70 53.28 63.28 60 55 60H35"
+              stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="58" y="65" width="12" height="4" fill="white">
+          <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/>
+        </rect>
+      </svg>
+      <div class="logo">Piku Typing</div>
+    </a>
+    <div class="header-actions" id="headerActions">
+      <a href="lessons.html" class="btn">← Back to Lessons</a>
+      <button class="btn" id="darkToggle">🌙 Dark</button>
+    </div>
+  </header>
+
+  <!-- ========== MAIN ========== -->
+  <main class="container">
+    <div class="lesson-layout">
+
+      <!-- LEFT — Lesson Player -->
+      <div>
+
+        <!-- Lesson Header -->
+        <div class="card lesson-header" id="lessonHeader">
+          <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:0.3rem;"
+               id="lessonTrackLabel"></div>
+          <h2 id="lessonTitle">Loading...</h2>
+          <div style="font-size:0.95rem;color:var(--text-secondary);margin-top:0.3rem;"
+               id="lessonDesc"></div>
+          <div style="margin-top:0.8rem;">
+            <span class="lesson-keys" id="lessonKeys"></span>
+          </div>
+
+          <!-- Task progress pips -->
+          <div class="task-progress" id="taskPips"></div>
+        </div>
+
+        <!-- Typing Card -->
+        <div class="card" style="margin-top:1.5rem;">
+
+          <!-- Task label -->
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+            <div>
+              <span style="font-weight:600;" id="taskLabel"></span>
+              <span style="color:var(--text-secondary);font-size:0.85rem;margin-left:0.5rem;"
+                    id="taskCounter"></span>
+            </div>
+            <div class="stats" style="margin:0;">
+              <span class="stat-badge" id="lessonWpm">⚡ — WPM</span>
+              <span class="stat-badge" id="lessonAcc">🎯 100%</span>
+              <span class="stat-badge" id="lessonErrors">❌ 0</span>
+            </div>
+          </div>
+
+          <!-- Typing display -->
+          <div class="typing-display" id="lessonDisplay"></div>
+
+          <input
+            type="text"
+            class="hidden-input"
+            id="lessonInput"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="none"
+            spellcheck="false"
+            inputmode="text"
+            readonly
+          >
+
+          <!-- Completion message -->
+          <div id="taskComplete" style="
+            display:none;
+            background:rgba(46,139,87,0.1);
+            border:1.5px solid #2e8b57;
+            border-radius:20px;
+            padding:1.2rem 1.5rem;
+            margin-top:1.2rem;
+            text-align:center;
+          ">
+            <div style="font-size:1.5rem;margin-bottom:0.3rem;">🎉</div>
+            <div style="font-weight:700;color:#2e8b57;font-size:1.1rem;" id="taskCompleteMsg"></div>
+            <div style="color:var(--text-secondary);font-size:0.88rem;margin-top:0.3rem;"
+                 id="taskCompleteStats"></div>
+          </div>
+
+          <!-- Navigation -->
+          <div class="lesson-nav-buttons">
+            <button class="btn" id="prevTaskBtn">← Previous</button>
+            <button class="btn" id="retryBtn">⟳ Retry</button>
+            <button class="btn btn-primary" id="nextTaskBtn" style="width:auto;padding:0.65rem 2rem;">
+              Next Task →
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Keyboard -->
+        <div class="keyboard-wrap" id="keyboardWrap"></div>
+
+      </div>
+
+      <!-- RIGHT — Sidebar -->
+      <div class="lesson-sidebar">
+
+        <!-- All tasks in this lesson -->
+        <div class="card" style="margin-bottom:1.5rem;">
+          <div style="font-weight:700;margin-bottom:0.8rem;">📋 Tasks</div>
+          <ul class="sidebar-lesson-list" id="taskList"></ul>
+        </div>
+
+        <!-- All lessons in track -->
+        <div class="card">
+          <div style="font-weight:700;margin-bottom:0.8rem;">📚 This Track</div>
+          <ul class="sidebar-lesson-list" id="trackLessonList"></ul>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    © 2026 <strong>PikuNotes</strong> · All rights reserved
+  </footer>
+
+  <script src="nav.js"></script>
+  <script src="lessons-data.js"></script>
+  <script>
+  /* ==========================================
+     lesson.html — Lesson Player Script
+     ========================================== */
+
+  /* ── Dark mode ── */
+  const darkToggle = document.getElementById('darkToggle');
+  let isDark = localStorage.getItem('pt_dark') === 'true';
+  document.body.classList.toggle('dark', isDark);
+  darkToggle.textContent = isDark ? '☀️ Light' : '🌙 Dark';
+  darkToggle.addEventListener('click', () => {
+    isDark = !isDark;
+    document.body.classList.toggle('dark', isDark);
+    localStorage.setItem('pt_dark', isDark);
+    darkToggle.textContent = isDark ? '☀️ Light' : '🌙 Dark';
+  });
+
+  /* ── State ── */
+  const params      = new URLSearchParams(location.search);
+  const lessonId    = params.get('id') || 'b1';
+  let lesson        = null;
+  let currentTask   = 0;
+  let charSpans     = [];
+  let currentPos    = 0;
+  let correctChars  = 0;
+  let totalTyped    = 0;
+  let errors        = 0;
+  let startTime     = null;
+  let timerInterval = null;
+  let taskDone      = false;
+
+  /* ── DOM ── */
+  const lessonDisplay   = document.getElementById('lessonDisplay');
+  const lessonInput     = document.getElementById('lessonInput');
+  const lessonWpm       = document.getElementById('lessonWpm');
+  const lessonAcc       = document.getElementById('lessonAcc');
+  const lessonErrors    = document.getElementById('lessonErrors');
+  const taskComplete    = document.getElementById('taskComplete');
+  const taskCompleteMsg = document.getElementById('taskCompleteMsg');
+  const taskCompleteStats = document.getElementById('taskCompleteStats');
+  const prevTaskBtn     = document.getElementById('prevTaskBtn');
+  const nextTaskBtn     = document.getElementById('nextTaskBtn');
+  const retryBtn        = document.getElementById('retryBtn');
+  const taskPips        = document.getElementById('taskPips');
+  const taskList        = document.getElementById('taskList');
+  const taskLabel       = document.getElementById('taskLabel');
+  const taskCounter     = document.getElementById('taskCounter');
+
+  /* ── INIT ── */
+  function init() {
+    lesson = getLessonById(lessonId);
+    if (!lesson) {
+      document.getElementById('lessonTitle').textContent = 'Lesson not found.';
+      return;
+    }
+
+    document.title = `Piku Typing — ${lesson.title}`;
+    document.getElementById('lessonTitle').textContent     = lesson.title;
+    document.getElementById('lessonDesc').textContent      = lesson.description;
+    document.getElementById('lessonKeys').textContent      = lesson.keys;
+    document.getElementById('lessonTrackLabel').textContent =
+      lesson.trackLabel + ' Track';
+
+    buildPips();
+    buildTaskSidebar();
+    buildTrackSidebar();
+    buildKeyboard();
+    loadTask(0);
+  }
+
+  /* ── Build task pips ── */
+  function buildPips() {
+    taskPips.innerHTML = '';
+    lesson.tasks.forEach((_, i) => {
+      const pip = document.createElement('div');
+      pip.className = 'task-pip';
+      pip.title = `Task ${i + 1}`;
+      pip.addEventListener('click', () => loadTask(i));
+      taskPips.appendChild(pip);
+    });
+  }
+
+  function updatePips() {
+    const pips = taskPips.querySelectorAll('.task-pip');
+    pips.forEach((p, i) => {
+      p.classList.remove('active', 'done');
+      if (i === currentTask) p.classList.add('active');
+      else if (i < currentTask) p.classList.add('done');
+    });
+  }
+
+  /* ── Build task sidebar ── */
+  function buildTaskSidebar() {
+    taskList.innerHTML = '';
+    lesson.tasks.forEach((t, i) => {
+      const li = document.createElement('li');
+      li.textContent = `${i + 1}. ${t.label}`;
+      li.dataset.idx = i;
+      li.addEventListener('click', () => loadTask(i));
+      taskList.appendChild(li);
+    });
+  }
+
+  function updateTaskSidebar() {
+    taskList.querySelectorAll('li').forEach((li, i) => {
+      li.classList.toggle('active', i === currentTask);
+      li.classList.toggle('done', i < currentTask);
+    });
+  }
+
+  /* ── Build track sidebar ── */
+  function buildTrackSidebar() {
+    const list      = document.getElementById('trackLessonList');
+    const completed = getCompletedLessons();
+    list.innerHTML  = '';
+
+    const trackLessons = ALL_LESSONS_FLAT.filter(
+      l => l.trackKey === lesson.trackKey
+    );
+
+    trackLessons.forEach(l => {
+      const li = document.createElement('li');
+      li.className =
+        l.id === lessonId ? 'active' :
+        completed.includes(l.id) ? 'done' : '';
+      li.innerHTML =
+        (completed.includes(l.id) ? '✓ ' : '') + l.title;
+      li.addEventListener('click', () => {
+        location.href = `lesson.html?id=${l.id}`;
+      });
+      list.appendChild(li);
+    });
+  }
+
+  /* ── Build on-screen keyboard ── */
+  const KB_LAYOUT = [
+    ['`','1','2','3','4','5','6','7','8','9','0','-','=','⌫'],
+    ['Tab','q','w','e','r','t','y','u','i','o','p','[',']','\\'],
+    ['Caps','a','s','d','f','g','h','j','k','l',';',"'",'Enter'],
+    ['Shift','z','x','c','v','b','n','m',',','.','/','Shift'],
+    ['Ctrl','','Alt','Space','Alt','','Ctrl']
+  ];
+
+  const FINGER_MAP = {
+    '`':1,'1':1,'q':1,'a':1,'z':1,
+    '2':2,'w':2,'s':2,'x':2,
+    '3':3,'e':3,'d':3,'c':3,
+    '4':4,'r':4,'f':4,'v':4,'5':4,'t':4,'g':4,'b':4,
+    '6':7,'y':7,'h':7,'n':7,'7':7,'u':7,'j':7,'m':7,
+    '8':8,'i':8,'k':8,',':8,
+    '9':9,'o':9,'l':9,'.':9,
+    '0':10,'p':10,';':10,'/':10,'-':10,"'":10,'[':10,
+    '=':11,']':11,'\\':11
+  };
+
+  const FINGER_CLASS = {
+    1:'finger-l-pinky', 2:'finger-l-ring', 3:'finger-l-middle',
+    4:'finger-l-index', 5:'finger-thumb', 6:'finger-thumb',
+    7:'finger-r-index', 8:'finger-r-middle', 9:'finger-r-ring',
+    10:'finger-r-pinky', 11:'finger-r-pinky'
+  };
+
+  function buildKeyboard() {
+    const wrap = document.getElementById('keyboardWrap');
+    wrap.innerHTML = '<div style="font-weight:600;margin-bottom:0.8rem;">⌨️ Keyboard Guide</div>';
+
+    KB_LAYOUT.forEach(row => {
+      const rowDiv = document.createElement('div');
+      rowDiv.className = 'kb-row';
+
+      row.forEach(key => {
+        const k = document.createElement('div');
+        k.className = 'kb-key';
+        k.textContent = key;
+        k.dataset.key = key.toLowerCase();
+
+        if (key === 'Space')   k.className += ' space';
+        else if (key === 'Tab' || key === 'Caps' || key === '⌫')
+          k.className += ' wide-15';
+        else if (key === 'Enter' || key === 'Shift')
+          k.className += ' wide-20';
+
+        const fNum = FINGER_MAP[key.toLowerCase()];
+        if (fNum) k.className += ' ' + FINGER_CLASS[fNum];
+
+        rowDiv.appendChild(k);
+      });
+
+      wrap.appendChild(rowDiv);
+    });
+  }
+
+  function highlightKeys(text) {
+    const activeKeys = new Set(
+      text.toLowerCase().replace(/\s/g, '').split('')
+    );
+    document.querySelectorAll('.kb-key').forEach(k => {
+      k.classList.toggle('highlight', activeKeys.has(k.dataset.key));
+    });
+  }
+
+  /* ── Load task ── */
+  function loadTask(idx) {
+    currentTask  = idx;
+    taskDone     = false;
+    currentPos   = 0;
+    correctChars = 0;
+    totalTyped   = 0;
+    errors       = 0;
+    startTime    = null;
+    clearInterval(timerInterval);
+
+    lessonInput.value = '';
+    taskComplete.style.display = 'none';
+    nextTaskBtn.style.display  = 'inline-flex';
+
+    const task = lesson.tasks[idx];
+    taskLabel.textContent   = `📝 ${task.label}`;
+    taskCounter.textContent = `Task ${idx + 1} of ${lesson.tasks.length}`;
+
+    lessonWpm.textContent    = '⚡ — WPM';
+    lessonAcc.textContent    = '🎯 100%';
+    lessonErrors.textContent = '❌ 0';
+
+    renderTaskText(task.text);
+    updatePips();
+    updateTaskSidebar();
+    highlightKeys(task.text);
+
+    prevTaskBtn.disabled = idx === 0;
+    nextTaskBtn.textContent =
+      idx === lesson.tasks.length - 1 ? '✅ Complete Lesson' : 'Next Task →';
+
+    setTimeout(() => {
+      lessonInput.removeAttribute('readonly');
+      lessonInput.focus();
+    }, 50);
+  }
+
+  /* ── Render task text ── */
+  function renderTaskText(text) {
+    lessonDisplay.innerHTML = '';
+    charSpans = [];
+
+    for (let i = 0; i < text.length; i++) {
+      const span = document.createElement('span');
+      span.className = 'char' + (i === 0 ? ' current' : '');
+      span.textContent = text[i] === ' ' ? '\u00A0' : text[i];
+      lessonDisplay.appendChild(span);
+      charSpans.push(span);
+    }
+  }
+
+  /* ── Input ── */
+  lessonInput.addEventListener('input', () => {
+    if (taskDone) return;
+
+    const val   = lessonInput.value;
+    const typed = val[val.length - 1];
+    if (!typed) return;
+
+    if (!startTime) {
+      startTime = Date.now();
+      timerInterval = setInterval(updateStats, 500);
+    }
+
+    if (currentPos >= charSpans.length) return;
+
+    const task     = lesson.tasks[currentTask];
+    const expected = task.text[currentPos];
+    const correct  = typed === expected;
+
+    charSpans[currentPos].classList.remove('current');
+
+    if (correct) {
+      charSpans[currentPos].classList.add('correct');
+      correctChars++;
+    } else {
+      charSpans[currentPos].classList.add('incorrect');
+      errors++;
+    }
+
+    totalTyped++;
+    currentPos++;
+
+    if (currentPos < charSpans.length) {
+      charSpans[currentPos].classList.add('current');
+      scrollCursor();
+    }
+
+    lessonInput.value = '';
+    updateStats();
+
+    if (currentPos >= charSpans.length) finishTask();
+  });
+
+  lessonInput.addEventListener('keydown', e => {
+    if (e.key === 'Backspace') {
+      e.preventDefault();
+      if (currentPos === 0) return;
+      const prev = lesson.tasks[currentTask].text[currentPos - 1];
+      if (prev === ' ') return;
+
+      currentPos--;
+      const wasCorrect = charSpans[currentPos].classList.contains('correct');
+      charSpans[currentPos].classList.remove('correct', 'incorrect', 'current');
+      charSpans[currentPos].classList.add('current');
+      if (currentPos + 1 < charSpans.length)
+        charSpans[currentPos + 1].classList.remove('current');
+      if (totalTyped > 0) totalTyped--;
+      if (wasCorrect) correctChars = Math.max(0, correctChars - 1);
+      lessonInput.value = '';
+      updateStats();
+    }
+  });
+
+  lessonDisplay.addEventListener('click', () => {
+    lessonInput.removeAttribute('readonly');
+    lessonInput.focus();
+  });
+
+  function scrollCursor() {
+    const cur = charSpans[currentPos];
+    if (!cur) return;
+    const top = cur.offsetTop;
+    const bot = top + cur.offsetHeight;
+    const dTop = lessonDisplay.scrollTop;
+    const dBot = dTop + lessonDisplay.clientHeight;
+    if (top < dTop || bot > dBot)
+      lessonDisplay.scrollTop = top - lessonDisplay.clientHeight / 2;
+  }
+
+  /* ── Stats ── */
+  function updateStats() {
+    const elapsed = startTime ? (Date.now() - startTime) / 60000 : 0;
+    const wpm     = elapsed > 0 ? Math.round((correctChars / 5) / elapsed) : 0;
+    const acc     = totalTyped > 0
+      ? Math.round((correctChars / totalTyped) * 100) : 100;
+
+    lessonWpm.textContent    = `⚡ ${wpm} WPM`;
+    lessonAcc.textContent    = `🎯 ${acc}%`;
+    lessonErrors.textContent = `❌ ${errors}`;
+  }
+
+  /* ── Finish task ── */
+  function finishTask() {
+    taskDone = true;
+    clearInterval(timerInterval);
+    lessonInput.blur();
+
+    const elapsed = startTime ? (Date.now() - startTime) / 60000 : 0;
+    const wpm     = elapsed > 0 ? Math.round((correctChars / 5) / elapsed) : 0;
+    const acc     = totalTyped > 0
+      ? Math.round((correctChars / totalTyped) * 100) : 100;
+
+    const isLast = currentTask === lesson.tasks.length - 1;
+
+    taskCompleteMsg.textContent =
+      isLast ? '🏆 Lesson Complete!' : `✅ Task ${currentTask + 1} Complete!`;
+    taskCompleteStats.textContent =
+      `${wpm} WPM · ${acc}% accuracy · ${errors} errors`;
+    taskComplete.style.display = 'block';
+
+    if (isLast) markLessonComplete(lessonId);
+  }
+
+  /* ── Navigation ── */
+  nextTaskBtn.addEventListener('click', () => {
+    if (currentTask < lesson.tasks.length - 1) {
+      loadTask(currentTask + 1);
+    } else {
+      /* lesson finished — go back to hub */
+      location.href = 'lessons.html';
+    }
+  });
+
+  prevTaskBtn.addEventListener('click', () => {
+    if (currentTask > 0) loadTask(currentTask - 1);
+  });
+
+  retryBtn.addEventListener('click', () => loadTask(currentTask));
+
+  /* ── Start ── */
+  init();
+  </script>
+
+</body>
+</html>
