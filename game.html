@@ -1,3 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Piku Typing — Game</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='5' y='5' width='90' height='90' rx='20' fill='%233a6bc5'/><path d='M35 30V70M35 30H55C63.2843 30 70 36.7157 70 45C70 53.2843 63.2843 60 55 60H35' stroke='white' stroke-width='10' stroke-linecap='round'/></svg>">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    .game-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    .game-arena {
+      background: var(--bg);
+      border: 2px solid var(--border-light);
+      border-radius: 22px;
+      height: 460px;
+      position: relative;
+      overflow: hidden;
+      margin: 1rem 0;
+      transition: border-color 0.3s;
+    }
+
+    .game-arena.danger { border-color: #c0241c; box-shadow: 0 0 20px rgba(192,36,28,0.2); }
+
+    /* Danger zone line */
+    .danger-line {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 50px;
+      background: linear-gradient(to top, rgba(192,36,28,0.08), transparent);
+      border-top: 1.5px dashed rgba(192,36,28,0.3);
+      pointer-events: none;
+    }
+
+    .falling-word {
+      position: absolute;
+      font-family: var(--font-mono);
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      background: var(--surface);
+      border: 1.5px solid var(--border-light);
+      border-radius: 10px;
+      padding: 0.3rem 0.8rem;
+      white-space: nowrap;
+      cursor: default;
+      user-select: none;
+      transition: border-color 0.1s, box-shadow 0.1s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .falling-word.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 14px rgba(79,126,201,0.35);
+    }
+
+    .falling-word.missed {
+      border-color: #c0241c;
+      color: #c0241c;
+      opacity: 0.5;
+    }
+
+    .falling-word.correct-flash {
+      border-color: #2e8b57;
+      background: rgba(46,139,87,0.1);
+      color: #2e8b57;
+    }
+
+    /* Lives display */
+    .lives-display {
+      display: flex;
+      gap: 0.4rem;
+      font-size: 1.4rem;
+    }
+
+    .life { transition: opacity 0.3s; }
+    .life.lost { opacity: 0.2; filter: grayscale(1); }
+
+    /* Score popup */
+    .score-popup {
+      position: absolute;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 1rem;
+      color: #2e8b57;
+      pointer-events: none;
+      animation: floatUp 0.8s ease forwards;
+      z-index: 10;
+    }
+
+    @keyframes floatUp {
+      0%   { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-40px); }
+    }
+
+    /* Game over overlay */
+    .game-over-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 20px;
+      gap: 0.8rem;
+      backdrop-filter: blur(4px);
+      z-index: 20;
+    }
+
+    .game-over-title {
+      font-family: var(--font-display);
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: white;
+    }
+
+    .game-over-score {
+      font-size: 1.1rem;
+      color: rgba(255,255,255,0.8);
+      text-align: center;
+      line-height: 1.8;
+    }
+
+    /* Start overlay */
+    .start-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 20px;
+      gap: 1rem;
+      backdrop-filter: blur(4px);
+      z-index: 20;
+    }
+
+    .start-title {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: white;
+      text-align: center;
+    }
+
+    .start-subtitle {
+      color: rgba(255,255,255,0.75);
+      font-size: 1rem;
+      text-align: center;
+      max-width: 300px;
+    }
+
+    /* Sidebar stats */
+    .sidebar-stat {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.7rem 0;
+      border-bottom: 1px dashed var(--border-light);
+      font-size: 0.95rem;
+    }
+
+    .sidebar-stat:last-child { border-bottom: none; }
+    .sidebar-stat-val { font-weight: 700; font-size: 1.1rem; }
+
+    /* High scores list */
+    .hs-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.45rem 0;
+      border-bottom: 1px dashed var(--border-light);
+      font-size: 0.88rem;
+    }
+    .hs-row:last-child { border-bottom: none; }
+
+    @media (max-width: 900px) {
+      .game-wrapper { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ========== HEADER ========== -->
+  <header class="main-header">
+    <a class="brand" href="Index.html">
+      <svg width="40" height="40" viewBox="0 0 100 100" fill="none">
+        <defs>
+          <linearGradient id="pg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#3a6bc5"/>
+            <stop offset="100%" style="stop-color:#7351b5"/>
+          </linearGradient>
+        </defs>
+        <rect x="5" y="5" width="90" height="90" rx="20" fill="url(#pg)"/>
+        <rect x="5" y="5" width="90" height="45" rx="20" fill="white" fill-opacity="0.1"/>
+        <path d="M35 30V70M35 30H55C63.28 30 70 36.72 70 45C70 53.28 63.28 60 55 60H35"
+              stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="58" y="65" width="12" height="4" fill="white">
+          <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/>
+        </rect>
+      </svg>
+      <div class="logo">Piku Typing</div>
+    </a>
+    <div class="header-actions" id="headerActions">
+      <button class="btn" id="darkToggle">🌙 Dark</button>
+    </div>
+  </header>
+
+  <!-- ========== MAIN ========== -->
+  <main class="container">
+
+    <!-- Page title -->
+    <div class="card" style="text-align:center;padding:2rem;">
+      <h1 style="font-family:var(--font-display);font-size:2.4rem;font-weight:800;
+                 background:var(--gradient-brand);-webkit-background-clip:text;
+                 background-clip:text;color:transparent;margin-bottom:0.5rem;">
+        🎮 Falling Words
+      </h1>
+      <p style="color:var(--text-secondary);font-size:1rem;">
+        Type the falling words before they hit the bottom. Miss 3 and it's game over!
+      </p>
+    </div>
+
+    <div class="game-wrapper">
+
+      <!-- LEFT — Game -->
+      <div>
+
+        <!-- Stats bar -->
+        <div class="card" style="padding:1rem 1.8rem;">
+          <div style="display:flex;justify-content:space-between;
+                      align-items:center;flex-wrap:wrap;gap:1rem;">
+            <div class="game-stats" style="margin:0;">
+              <span class="game-stat" id="scoreDisplay">⭐ 0</span>
+              <span class="game-stat" id="levelDisplay">🎯 Level 1</span>
+              <span class="game-stat" id="comboDisplay">🔥 0x Combo</span>
+              <span class="game-stat" id="wpmDisplay">⚡ — WPM</span>
+            </div>
+            <div class="lives-display" id="livesDisplay"></div>
+          </div>
+        </div>
+
+        <!-- Arena -->
+        <div class="game-arena" id="gameArena">
+          <div class="danger-line"></div>
+
+          <!-- Start overlay -->
+          <div class="start-overlay" id="startOverlay">
+            <div style="font-size:3rem;">🎮</div>
+            <div class="start-title">Falling Words</div>
+            <div class="start-subtitle">
+              Type words before they reach the bottom.<br>
+              Miss 3 and game over!
+            </div>
+
+            <div style="display:flex;gap:0.8rem;flex-wrap:wrap;justify-content:center;
+                        margin-top:0.5rem;">
+              <button class="btn active" id="diffEasy"   data-diff="easy">🌱 Easy</button>
+              <button class="btn"        id="diffMedium" data-diff="medium">⚡ Medium</button>
+              <button class="btn"        id="diffHard"   data-diff="hard">🔥 Hard</button>
+            </div>
+
+            <button class="btn btn-primary" id="startGameBtn"
+                    style="width:auto;padding:0.9rem 3rem;font-size:1.1rem;margin-top:0.5rem;">
+              ▶ Start Game
+            </button>
+          </div>
+
+          <!-- Game over overlay (hidden) -->
+          <div class="game-over-overlay" id="gameOverOverlay" style="display:none;">
+            <div style="font-size:3rem;" id="gameOverEmoji">💀</div>
+            <div class="game-over-title">Game Over</div>
+            <div class="game-over-score" id="gameOverStats"></div>
+            <div style="display:flex;gap:1rem;margin-top:0.5rem;">
+              <button class="btn active" id="playAgainBtn"
+                      style="font-size:1rem;padding:0.7rem 2rem;">
+                ▶ Play Again
+              </button>
+              <button class="btn" id="changeSettingsBtn"
+                      style="font-size:1rem;padding:0.7rem 2rem;">
+                ⚙ Settings
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Input -->
+        <div class="card" style="padding:1.2rem 1.8rem;">
+          <div class="game-input-wrap">
+            <input
+              type="text"
+              class="game-input"
+              id="gameInput"
+              placeholder="Type words here..."
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="none"
+              spellcheck="false"
+            >
+            <button class="btn" id="pauseBtn" style="display:none;">⏸ Pause</button>
+          </div>
+          <div style="font-size:0.82rem;color:var(--text-secondary);margin-top:0.5rem;"
+               id="gameHint">
+            Choose difficulty and press Start Game
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT — Sidebar -->
+      <div>
+
+        <!-- Live stats -->
+        <div class="card" style="margin-bottom:1.5rem;">
+          <div style="font-weight:700;margin-bottom:0.5rem;">📊 This Game</div>
+          <div class="sidebar-stat">
+            <span>Score</span>
+            <span class="sidebar-stat-val" id="sideScore">0</span>
+          </div>
+          <div class="sidebar-stat">
+            <span>Level</span>
+            <span class="sidebar-stat-val" id="sideLevel">1</span>
+          </div>
+          <div class="sidebar-stat">
+            <span>Words typed</span>
+            <span class="sidebar-stat-val" id="sideWords">0</span>
+          </div>
+          <div class="sidebar-stat">
+            <span>Best combo</span>
+            <span class="sidebar-stat-val" id="sideBestCombo">0</span>
+          </div>
+          <div class="sidebar-stat">
+            <span>Missed</span>
+            <span class="sidebar-stat-val" id="sideMissed">0</span>
+          </div>
+          <div class="sidebar-stat">
+            <span>WPM</span>
+            <span class="sidebar-stat-val" id="sideWpm">—</span>
+          </div>
+        </div>
+
+        <!-- High scores -->
+        <div class="card">
+          <div style="font-weight:700;margin-bottom:0.8rem;">🏆 High Scores</div>
+          <div id="highScoresList">
+            <div style="color:var(--text-secondary);font-size:0.88rem;">
+              Play a game to set a score!
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    © 2026 <strong>PikuNotes</strong> · All rights reserved
+  </footer>
+
+  <script src="nav.js"></script>
+  <script>
 /* ==========================================
    game.html — Falling Words Game
    ========================================== */
