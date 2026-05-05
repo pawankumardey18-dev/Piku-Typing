@@ -566,19 +566,8 @@ function spawnWord() {
   } while (existing.includes(word) && tries < 30);
 
   /* create element */
-  const el = document.createElement('div');
-  el.className   = 'falling-word';
-  el.textContent = word;
-
-  /* estimate word width synchronously — avoids layout timing issues */
-  const estimatedWordW = word.length * 11 + 28;
-  const maxLeft        = Math.max(20, arenaW - estimatedWordW - 20);
-  const left           = Math.floor(Math.random() * maxLeft) + 10;
-
-  el.style.left = left + 'px';
-  el.style.top  = '-60px';
-
-  arena.appendChild(el);
+el.style.left = left + 'px';
+el.style.top  = '0px'; // Changed from -60px to start inside the arena
 
   /* fall duration — gets faster with level */
   const baseDuration = cfg.fallDuration;
