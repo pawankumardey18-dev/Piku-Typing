@@ -377,7 +377,7 @@
   <script src="nav.js"></script>
   <script>
 /* ==========================================
-   game.html — Falling Words Game
+   game.html — Falling Words Game (Fixed)
    ========================================== */
 
 /* ── Dark mode ── */
@@ -395,39 +395,46 @@ darkToggle.addEventListener('click', () => {
 /* ── Word pools ── */
 const WORD_POOLS = {
   easy: [
-    'the','be','to','of','and','a','in','that','have','it','for','not','on',
-    'with','he','as','you','do','at','this','but','his','by','from','they',
-    'we','say','her','she','or','an','will','my','one','all','would','there',
-    'what','so','up','out','if','about','who','get','go','me','when','make',
-    'can','like','time','no','just','him','know','take','good','some','see',
-    'cat','dog','run','fly','big','fun','hot','sun','red','box','cup','map'
+    'the','be','to','of','and','in','that','have','for','not','on',
+    'with','you','do','at','this','but','from','they','we','say',
+    'will','one','all','there','what','so','up','out','about','who',
+    'get','go','me','when','make','can','like','time','just','know',
+    'take','good','some','see','cat','dog','run','fly','big','fun',
+    'hot','sun','red','box','cup','map','top','win','now','may'
   ],
   medium: [
-    'about','above','across','after','again','almost','always','because',
-    'before','between','change','check','choose','clear','close','could',
-    'create','decide','design','during','early','enough','every','example',
-    'explain','family','figure','final','first','follow','found','great',
-    'group','happy','heard','house','human','inside','large','later','learn',
-    'leave','light','listen','local','major','matter','maybe','moment','money',
-    'never','night','north','often','order','other','paper','party','place'
+    'about','above','across','after','again','almost','always',
+    'because','before','between','change','check','choose','clear',
+    'close','could','create','decide','design','during','early',
+    'enough','every','example','explain','family','figure','final',
+    'follow','found','great','group','happy','heard','house','human',
+    'inside','large','later','learn','leave','light','listen','local',
+    'major','matter','maybe','moment','money','never','night','often',
+    'order','other','paper','party','place','power','quite','reach'
   ],
   hard: [
-    'acknowledge','approximately','circumstances','collaboration','communication',
-    'comprehensive','consequently','continuously','determination','differentiate',
-    'disappointment','documentation','effectiveness','establishment','extraordinary',
-    'fundamental','implementation','independence','infrastructure','intelligence',
-    'investigation','manufacturing','miscellaneous','opportunities','organizational',
-    'participation','particularly','perspective','philosophical','predominantly',
-    'sophisticated','straightforward','transformation','understanding','unfortunately'
+    'acknowledge','approximately','circumstances','collaboration',
+    'communication','comprehensive','consequently','continuously',
+    'determination','differentiate','disappointment','documentation',
+    'effectiveness','establishment','extraordinary','fundamental',
+    'implementation','independence','infrastructure','intelligence',
+    'investigation','manufacturing','miscellaneous','opportunities',
+    'organizational','participation','particularly','perspective',
+    'philosophical','predominantly','sophisticated','straightforward',
+    'transformation','understanding','unfortunately','unquestionably'
   ]
 };
 
 /* ── Config per difficulty ── */
 const DIFF_CONFIG = {
-  easy:   { fallDuration: 9000,  spawnInterval: 2000, maxWords: 4 },
-  medium: { fallDuration: 6500,  spawnInterval: 1500, maxWords: 5 },
-  hard:   { fallDuration: 4500,  spawnInterval: 1000, maxWords: 6 }
+  easy:   { fallDuration: 10000, spawnInterval: 2200, maxWords: 4 },
+  medium: { fallDuration: 7000,  spawnInterval: 1600, maxWords: 5 },
+  hard:   { fallDuration: 5000,  spawnInterval: 1100, maxWords: 6 }
 };
+
+/* ── Fixed arena height — never reads 0 ── */
+const ARENA_HEIGHT = 460;
+const ARENA_BOTTOM_THRESHOLD = ARENA_HEIGHT - 60;
 
 /* ── State ── */
 let gameRunning   = false;
@@ -440,7 +447,6 @@ let bestCombo     = 0;
 let wordsTyped    = 0;
 let wordsMissed   = 0;
 let gameStartTime = null;
-let spawnTimer    = null;
 let levelTimer    = null;
 let activeWords   = [];
 let animFrameId   = null;
@@ -455,6 +461,7 @@ const gameHint  = document.getElementById('gameHint');
 /* ── Difficulty selector ── */
 document.querySelectorAll('[data-diff]').forEach(btn => {
   btn.addEventListener('click', () => {
+    if (gameRunning) return;
     currentDiff = btn.dataset.diff;
     document.querySelectorAll('[data-diff]').forEach(b =>
       b.classList.toggle('active', b === btn));
@@ -475,9 +482,7 @@ function buildLives() {
 
 function updateLivesDisplay() {
   const hearts = document.querySelectorAll('.life');
-  hearts.forEach((h, i) => {
-    h.classList.toggle('lost', i >= lives);
-  });
+  hearts.forEach((h, i) => h.classList.toggle('lost', i >= lives));
 }
 
 /* ── Start game ── */
@@ -490,6 +495,7 @@ document.getElementById('changeSettingsBtn').addEventListener('click', () => {
 });
 
 function startGame() {
+  /* reset all state */
   score         = 0;
   level         = 1;
   lives         = 3;
@@ -497,81 +503,91 @@ function startGame() {
   bestCombo     = 0;
   wordsTyped    = 0;
   wordsMissed   = 0;
-  gameStartTime = Date.now();
-  lastSpawnTime = 0;
+  gameStartTime = null;
+  lastSpawnTime = -9999; /* force first spawn immediately */
   activeWords   = [];
   gameRunning   = true;
   gamePaused    = false;
 
-  /* clear leftover words */
-  arena.querySelectorAll('.falling-word').forEach(w => w.remove());
-  arena.querySelectorAll('.score-popup').forEach(w => w.remove());
+  /* clear arena */
+  arena.querySelectorAll('.falling-word, .score-popup').forEach(w => w.remove());
 
+  /* hide overlays */
   document.getElementById('startOverlay').style.display    = 'none';
   document.getElementById('gameOverOverlay').style.display = 'none';
 
+  /* reset UI */
   gameInput.value = '';
   gameInput.focus();
   pauseBtn.style.display = 'inline-flex';
   gameHint.textContent   = 'Type the falling words!';
 
-  buildLives();
-  updateScoreDisplay();
+  /* reset sidebar */
+  document.getElementById('sideScore').textContent    = '0';
+  document.getElementById('sideLevel').textContent    = '1';
+  document.getElementById('sideWords').textContent    = '0';
+  document.getElementById('sideBestCombo').textContent= '0';
+  document.getElementById('sideMissed').textContent   = '0';
+  document.getElementById('sideWpm').textContent      = '—';
 
-  /* clear old timers */
-  clearInterval(spawnTimer);
+  buildLives();
+
+  /* stop any old timers */
   clearInterval(levelTimer);
   cancelAnimationFrame(animFrameId);
 
   /* level up every 25 seconds */
   levelTimer = setInterval(levelUp, 25000);
 
-  /* start game loop — spawning handled inside loop */
+  /* kick off game loop */
   animFrameId = requestAnimationFrame(gameLoop);
 }
 
-/* ── Spawn word ── */
+/* ── Spawn word — uses fixed arena width, sets left synchronously ── */
 function spawnWord() {
   if (!gameRunning || gamePaused) return;
 
-  const cfg     = DIFF_CONFIG[currentDiff];
-  const arenaW  = arena.getBoundingClientRect().width;
-
-  if (arenaW < 10) return; /* arena not rendered yet */
+  const cfg    = DIFF_CONFIG[currentDiff];
   if (activeWords.length >= cfg.maxWords) return;
 
-  const pool    = WORD_POOLS[currentDiff];
+  /* get arena width — use offsetWidth as reliable fallback */
+  const arenaW = arena.offsetWidth || 700;
+
+  const pool     = WORD_POOLS[currentDiff];
   const existing = activeWords.map(w => w.word);
 
-  /* pick a word not already on screen */
+  /* pick unique word */
   let word;
-  let attempts = 0;
+  let tries = 0;
   do {
     word = pool[Math.floor(Math.random() * pool.length)];
-    attempts++;
-  } while (existing.includes(word) && attempts < 20);
+    tries++;
+  } while (existing.includes(word) && tries < 30);
 
+  /* create element */
   const el = document.createElement('div');
   el.className   = 'falling-word';
   el.textContent = word;
-  el.style.top   = '-60px';
 
-  /* position word — wait for it to be in DOM to get width */
+  /* estimate word width synchronously — avoids layout timing issues */
+  const estimatedWordW = word.length * 11 + 28;
+  const maxLeft        = Math.max(20, arenaW - estimatedWordW - 20);
+  const left           = Math.floor(Math.random() * maxLeft) + 10;
+
+  el.style.left = left + 'px';
+  el.style.top  = '-60px';
+
   arena.appendChild(el);
 
-  /* use requestAnimationFrame to get real rendered width */
-  requestAnimationFrame(() => {
-    const wordW   = el.getBoundingClientRect().width || (word.length * 12 + 20);
-    const maxLeft = Math.max(10, arenaW - wordW - 10);
-    const left    = Math.floor(Math.random() * maxLeft) + 5;
-    el.style.left = left + 'px';
-  });
+  /* fall duration — gets faster with level */
+  const baseDuration = cfg.fallDuration;
+  const minDuration  =
+    currentDiff === 'hard'   ? 2500 :
+    currentDiff === 'medium' ? 3500 : 5000;
 
-  /* fall duration adjusted by level */
-  const baseDuration = DIFF_CONFIG[currentDiff].fallDuration;
-  const duration     = Math.max(
-    baseDuration - (level - 1) * 300,
-    currentDiff === 'hard' ? 2200 : currentDiff === 'medium' ? 3200 : 4500
+  const duration = Math.max(
+    baseDuration - (level - 1) * 350,
+    minDuration
   );
 
   activeWords.push({
@@ -579,7 +595,7 @@ function spawnWord() {
     word,
     startTime: Date.now(),
     duration,
-    reached: false
+    reached:   false
   });
 }
 
@@ -588,34 +604,40 @@ function gameLoop(timestamp) {
   if (!gameRunning) return;
 
   if (!gamePaused) {
-    const arenaH   = arena.getBoundingClientRect().height || 460;
     const cfg      = DIFF_CONFIG[currentDiff];
     const toRemove = [];
 
-    /* spawn check */
-    if (timestamp - lastSpawnTime > cfg.spawnInterval) {
+    /* ── record start time on first real frame ── */
+    if (!gameStartTime) gameStartTime = Date.now();
+
+    /* ── spawn check ── */
+    if (timestamp - lastSpawnTime >= cfg.spawnInterval) {
       spawnWord();
       lastSpawnTime = timestamp;
     }
 
-    /* move words */
+    /* ── move words ── */
     activeWords.forEach((w, i) => {
       const elapsed  = Date.now() - w.startTime;
       const progress = Math.min(elapsed / w.duration, 1);
-      const top      = -60 + progress * (arenaH + 60);
 
-      w.el.style.top = top + 'px';
+      /* top goes from -60 to ARENA_HEIGHT */
+      const top = -60 + progress * (ARENA_HEIGHT + 60);
+      w.el.style.top = Math.round(top) + 'px';
 
-      /* reached bottom */
-      if (top >= arenaH - 55 && !w.reached) {
+      /* check if reached bottom */
+      if (top >= ARENA_BOTTOM_THRESHOLD && !w.reached) {
         w.reached = true;
         w.el.classList.add('missed');
-        setTimeout(() => { if (w.el.parentNode) w.el.remove(); }, 400);
         toRemove.push(i);
+        setTimeout(() => {
+          if (w.el.parentNode) w.el.remove();
+        }, 350);
         missWord();
       }
     });
 
+    /* remove missed words */
     toRemove.reverse().forEach(i => activeWords.splice(i, 1));
 
     highlightClosest();
@@ -625,7 +647,7 @@ function gameLoop(timestamp) {
   animFrameId = requestAnimationFrame(gameLoop);
 }
 
-/* ── Highlight closest word to bottom ── */
+/* ── Highlight the word closest to bottom ── */
 function highlightClosest() {
   let closestIdx = -1;
   let closestTop = -Infinity;
@@ -643,20 +665,20 @@ function highlightClosest() {
   });
 }
 
-/* ── Miss word ── */
+/* ── Miss a word ── */
 function missWord() {
   wordsMissed++;
   combo = 0;
+
   lives = Math.max(0, lives - 1);
   updateLivesDisplay();
 
+  /* flash arena red */
   arena.classList.add('danger');
   setTimeout(() => arena.classList.remove('danger'), 600);
 
-  document.getElementById('sideMissed').textContent = wordsMissed;
-
   if (lives <= 0) {
-    setTimeout(() => endGame(), 500);
+    setTimeout(() => endGame(), 600);
   }
 }
 
@@ -667,7 +689,7 @@ gameInput.addEventListener('input', () => {
   const typed = gameInput.value.trim().toLowerCase();
   if (!typed) return;
 
-  /* check for exact match */
+  /* exact match check */
   const matchIdx = activeWords.findIndex(
     w => w.word.toLowerCase() === typed
   );
@@ -675,10 +697,13 @@ gameInput.addEventListener('input', () => {
   if (matchIdx !== -1) {
     const matched = activeWords[matchIdx];
 
+    /* flash green */
     matched.el.classList.add('correct-flash');
     showScorePopup(matched.el, `+${10 * Math.max(combo + 1, 1)}`);
 
-    setTimeout(() => { if (matched.el.parentNode) matched.el.remove(); }, 200);
+    setTimeout(() => {
+      if (matched.el.parentNode) matched.el.remove();
+    }, 200);
 
     combo++;
     bestCombo  = Math.max(bestCombo, combo);
@@ -690,14 +715,15 @@ gameInput.addEventListener('input', () => {
 
     document.getElementById('sideBestCombo').textContent = bestCombo;
     document.getElementById('sideWords').textContent     = wordsTyped;
-
     return;
   }
 
-  /* partial match highlight */
+  /* partial match — highlight word starting with typed text */
   activeWords.forEach(w => {
-    const matches = w.word.toLowerCase().startsWith(typed);
-    w.el.classList.toggle('active', matches);
+    w.el.classList.toggle(
+      'active',
+      w.word.toLowerCase().startsWith(typed)
+    );
   });
 });
 
@@ -707,9 +733,11 @@ function showScorePopup(wordEl, text) {
   popup.className   = 'score-popup';
   popup.textContent = text;
   popup.style.left  = wordEl.style.left || '50px';
-  popup.style.top   = wordEl.style.top  || '50px';
+  popup.style.top   = wordEl.style.top  || '100px';
   arena.appendChild(popup);
-  setTimeout(() => { if (popup.parentNode) popup.remove(); }, 900);
+  setTimeout(() => {
+    if (popup.parentNode) popup.remove();
+  }, 900);
 }
 
 /* ── Level up ── */
@@ -719,56 +747,70 @@ function levelUp() {
 
   const flash = document.createElement('div');
   flash.style.cssText = `
-    position:absolute;inset:0;display:flex;align-items:center;
-    justify-content:center;z-index:15;pointer-events:none;
-    font-family:var(--font-display);font-size:2rem;font-weight:800;
-    color:var(--accent);text-shadow:0 0 20px rgba(79,126,201,0.6);
-    animation:floatUp 1.4s ease forwards;
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:15;
+    pointer-events:none;
+    font-family:var(--font-display);
+    font-size:2.2rem;
+    font-weight:800;
+    color:var(--accent);
+    text-shadow: 0 0 30px rgba(79,126,201,0.8);
+    animation: floatUp 1.4s ease forwards;
   `;
   flash.textContent = `⬆ Level ${level}!`;
   arena.appendChild(flash);
-  setTimeout(() => { if (flash.parentNode) flash.remove(); }, 1400);
+  setTimeout(() => {
+    if (flash.parentNode) flash.remove();
+  }, 1400);
 }
 
-/* ── Update score display ── */
+/* ── Update all score displays ── */
 function updateScoreDisplay() {
   const elapsed = gameStartTime
     ? (Date.now() - gameStartTime) / 60000 : 0;
-  const wpm = elapsed > 0
+  const wpm = elapsed > 0.01
     ? Math.round(wordsTyped / elapsed) : 0;
 
   document.getElementById('scoreDisplay').textContent = `⭐ ${score}`;
   document.getElementById('levelDisplay').textContent = `🎯 Level ${level}`;
   document.getElementById('comboDisplay').textContent = `🔥 ${combo}x Combo`;
   document.getElementById('wpmDisplay').textContent   = `⚡ ${wpm} WPM`;
-  document.getElementById('sideScore').textContent    = score;
-  document.getElementById('sideLevel').textContent    = level;
-  document.getElementById('sideMissed').textContent   = wordsMissed;
-  document.getElementById('sideWpm').textContent      = wpm || '—';
+
+  document.getElementById('sideScore').textContent  = score;
+  document.getElementById('sideLevel').textContent  = level;
+  document.getElementById('sideMissed').textContent = wordsMissed;
+  document.getElementById('sideWpm').textContent    = wpm || '—';
 }
 
 /* ── Pause ── */
 pauseBtn.addEventListener('click', () => {
   gamePaused = !gamePaused;
   pauseBtn.textContent = gamePaused ? '▶ Resume' : '⏸ Pause';
-  if (!gamePaused) gameInput.focus();
+  if (!gamePaused) {
+    gameInput.focus();
+    animFrameId = requestAnimationFrame(gameLoop);
+  }
 });
 
 /* ── End game ── */
 function endGame() {
   gameRunning = false;
-  clearInterval(spawnTimer);
   clearInterval(levelTimer);
   cancelAnimationFrame(animFrameId);
   pauseBtn.style.display = 'none';
 
+  /* clear remaining words */
   setTimeout(() => {
     arena.querySelectorAll('.falling-word').forEach(w => w.remove());
-  }, 500);
+  }, 400);
 
   const elapsed = gameStartTime
-    ? (Date.now() - gameStartTime) / 60000 : 0.001;
-  const wpm = Math.round(wordsTyped / elapsed);
+    ? (Date.now() - gameStartTime) / 60000 : 0.01;
+  const wpm = Math.max(0, Math.round(wordsTyped / elapsed));
 
   const emoji =
     score >= 500 ? '🏆' :
@@ -793,7 +835,10 @@ function saveHighScore(score, level, words, wpm) {
   const key = `pt_hs_${currentDiff}`;
   let hs = [];
   try { hs = JSON.parse(localStorage.getItem(key) || '[]'); } catch {}
-  hs.push({ score, level, words, wpm, date: new Date().toLocaleDateString() });
+  hs.push({
+    score, level, words, wpm,
+    date: new Date().toLocaleDateString()
+  });
   hs.sort((a, b) => b.score - a.score);
   hs.splice(5);
   localStorage.setItem(key, JSON.stringify(hs));
@@ -807,13 +852,19 @@ function renderHighScores() {
 
   const el = document.getElementById('highScoresList');
   if (!hs.length) {
-    el.innerHTML = '<div style="color:var(--text-secondary);font-size:0.88rem;">Play a game to set a score!</div>';
+    el.innerHTML = `
+      <div style="color:var(--text-secondary);font-size:0.88rem;">
+        Play a game to set a score!
+      </div>`;
     return;
   }
 
   el.innerHTML = hs.map((h, i) => `
     <div class="hs-row">
-      <span>${i===0?'🥇':i===1?'🥈':i===2?'🥉':`#${i+1}`} &nbsp;${h.date}</span>
+      <span>
+        ${i===0?'🥇':i===1?'🥈':i===2?'🥉':`#${i+1}`}
+        &nbsp;${h.date}
+      </span>
       <span style="font-weight:600;">⭐${h.score}</span>
     </div>
   `).join('');
