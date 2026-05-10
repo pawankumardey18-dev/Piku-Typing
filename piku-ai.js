@@ -10,8 +10,8 @@
    Gemini: free at https://aistudio.google.com
 ──────────────────────────────────────────────────────── */
 const PIKU_CONFIG = {
-  groqKey:   'YOUR_GROQ_API_KEY',
-  geminiKey: 'YOUR_GEMINI_API_KEY',
+  groqKey: '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',
+  geminiKey: 'AIzaSyBnKKlNbqA6Sp7oFX8Yjj-Bu1Iud45RTaw',
 };
 
 /* ════════════════════════════════════════
@@ -641,7 +641,7 @@ async function callGroq(messages) {
       'Authorization': `Bearer ${PIKU_CONFIG.groqKey}`
     },
     body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
+      model: 'meta-llama/llama-4-scout-17b-16e-instruct',
       max_tokens: 180,
       temperature: 0.75,
       messages
