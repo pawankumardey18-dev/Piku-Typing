@@ -997,16 +997,13 @@ body.dark .kb-key.finger-r-pinky  { background: #200a3a; color: #c48af4; }
 /* ==========================================
    GAME PAGE
    ========================================== */
+/* Change 420 → 460 */
 .game-arena {
-  background: var(--bg);
-  border: 2px solid var(--border-light);
-  border-radius: 22px;
-  height: 420px;
-  position: relative;
-  overflow: hidden;
-  margin: 1.5rem 0;
+  height: 460px;   /* ← was 420px */
+  ...
 }
 
+/* Remove the animation from .falling-word */
 .falling-word {
   position: absolute;
   font-family: var(--font-mono);
@@ -1017,9 +1014,11 @@ body.dark .kb-key.finger-r-pinky  { background: #200a3a; color: #c48af4; }
   border: 1.5px solid var(--border-light);
   border-radius: 10px;
   padding: 0.3rem 0.8rem;
-  animation: fall linear forwards;
+  /* animation: fall linear forwards; ← DELETE THIS LINE */
   transition: border-color 0.1s;
 }
+
+/* And delete the @keyframes fall block entirely */
 
 .falling-word.active {
   border-color: var(--accent);

@@ -32,7 +32,6 @@
 
     .game-arena.danger { border-color: #c0241c; box-shadow: 0 0 20px rgba(192,36,28,0.2); }
 
-    /* Danger zone line */
     .danger-line {
       position: absolute;
       bottom: 0;
@@ -59,6 +58,7 @@
       user-select: none;
       transition: border-color 0.1s, box-shadow 0.1s;
       box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      z-index: 5;
     }
 
     .falling-word.active {
@@ -79,7 +79,6 @@
       color: #2e8b57;
     }
 
-    /* Lives display */
     .lives-display {
       display: flex;
       gap: 0.4rem;
@@ -89,7 +88,6 @@
     .life { transition: opacity 0.3s; }
     .life.lost { opacity: 0.2; filter: grayscale(1); }
 
-    /* Score popup */
     .score-popup {
       position: absolute;
       font-family: var(--font-mono);
@@ -106,7 +104,6 @@
       100% { opacity: 0; transform: translateY(-40px); }
     }
 
-    /* Game over overlay */
     .game-over-overlay {
       position: absolute;
       inset: 0;
@@ -135,7 +132,6 @@
       line-height: 1.8;
     }
 
-    /* Start overlay */
     .start-overlay {
       position: absolute;
       inset: 0;
@@ -165,7 +161,6 @@
       max-width: 300px;
     }
 
-    /* Sidebar stats */
     .sidebar-stat {
       display: flex;
       justify-content: space-between;
@@ -178,7 +173,6 @@
     .sidebar-stat:last-child { border-bottom: none; }
     .sidebar-stat-val { font-weight: 700; font-size: 1.1rem; }
 
-    /* High scores list */
     .hs-row {
       display: flex;
       justify-content: space-between;
@@ -196,7 +190,6 @@
 
 <body>
 
-  <!-- ========== HEADER ========== -->
   <header class="main-header">
     <a class="brand" href="Index.html">
       <svg width="40" height="40" viewBox="0 0 100 100" fill="none">
@@ -221,10 +214,8 @@
     </div>
   </header>
 
-  <!-- ========== MAIN ========== -->
   <main class="container">
 
-    <!-- Page title -->
     <div class="card" style="text-align:center;padding:2rem;">
       <h1 style="font-family:var(--font-display);font-size:2.4rem;font-weight:800;
                  background:var(--gradient-brand);-webkit-background-clip:text;
@@ -238,10 +229,8 @@
 
     <div class="game-wrapper">
 
-      <!-- LEFT — Game -->
       <div>
 
-        <!-- Stats bar -->
         <div class="card" style="padding:1rem 1.8rem;">
           <div style="display:flex;justify-content:space-between;
                       align-items:center;flex-wrap:wrap;gap:1rem;">
@@ -255,11 +244,9 @@
           </div>
         </div>
 
-        <!-- Arena -->
         <div class="game-arena" id="gameArena">
           <div class="danger-line"></div>
 
-          <!-- Start overlay -->
           <div class="start-overlay" id="startOverlay">
             <div style="font-size:3rem;">🎮</div>
             <div class="start-title">Falling Words</div>
@@ -267,21 +254,18 @@
               Type words before they reach the bottom.<br>
               Miss 3 and game over!
             </div>
-
             <div style="display:flex;gap:0.8rem;flex-wrap:wrap;justify-content:center;
                         margin-top:0.5rem;">
               <button class="btn active" id="diffEasy"   data-diff="easy">🌱 Easy</button>
               <button class="btn"        id="diffMedium" data-diff="medium">⚡ Medium</button>
               <button class="btn"        id="diffHard"   data-diff="hard">🔥 Hard</button>
             </div>
-
             <button class="btn btn-primary" id="startGameBtn"
                     style="width:auto;padding:0.9rem 3rem;font-size:1.1rem;margin-top:0.5rem;">
               ▶ Start Game
             </button>
           </div>
 
-          <!-- Game over overlay (hidden) -->
           <div class="game-over-overlay" id="gameOverOverlay" style="display:none;">
             <div style="font-size:3rem;" id="gameOverEmoji">💀</div>
             <div class="game-over-title">Game Over</div>
@@ -300,7 +284,6 @@
 
         </div>
 
-        <!-- Input -->
         <div class="card" style="padding:1.2rem 1.8rem;">
           <div class="game-input-wrap">
             <input
@@ -323,10 +306,8 @@
 
       </div>
 
-      <!-- RIGHT — Sidebar -->
       <div>
 
-        <!-- Live stats -->
         <div class="card" style="margin-bottom:1.5rem;">
           <div style="font-weight:700;margin-bottom:0.5rem;">📊 This Game</div>
           <div class="sidebar-stat">
@@ -355,7 +336,6 @@
           </div>
         </div>
 
-        <!-- High scores -->
         <div class="card">
           <div style="font-weight:700;margin-bottom:0.8rem;">🏆 High Scores</div>
           <div id="highScoresList">
@@ -377,19 +357,27 @@
   <script src="nav.js"></script>
   <script>
 /* ==========================================
-   game.html — Falling Words Game (Fixed)
+   game.html — Falling Words Game
+   BUG FIXES:
+   1. spawnWord() — createElement block was missing entirely (el was undefined)
+   2. darkToggle addEventListener — opening line was missing (syntax error killed whole script)
    ========================================== */
 
-/* ── Dark mode (Safe Version) ── */
+/* ── FIX #2: Dark mode toggle — addEventListener was missing its opening line ── */
 const darkToggle = document.getElementById('darkToggle');
 let isDark = false;
 try {
   isDark = localStorage.getItem('pt_dark') === 'true';
 } catch (e) {
-  console.warn("Storage blocked in Incognito; defaulting to Light mode.");
+  console.warn('Storage blocked; defaulting to light mode.');
 }
 document.body.classList.toggle('dark', isDark);
-  localStorage.setItem('pt_dark', isDark);
+darkToggle.textContent = isDark ? '☀️ Light' : '🌙 Dark';
+
+darkToggle.addEventListener('click', () => {       // ← THIS LINE WAS MISSING
+  isDark = !isDark;
+  document.body.classList.toggle('dark', isDark);
+  try { localStorage.setItem('pt_dark', isDark); } catch (e) {}
   darkToggle.textContent = isDark ? '☀️ Light' : '🌙 Dark';
 });
 
@@ -433,7 +421,7 @@ const DIFF_CONFIG = {
   hard:   { fallDuration: 5000,  spawnInterval: 1100, maxWords: 6 }
 };
 
-/* ── Fixed arena height — never reads 0 ── */
+/* ── Fixed arena height constant ── */
 const ARENA_HEIGHT = 460;
 const ARENA_BOTTOM_THRESHOLD = ARENA_HEIGHT - 60;
 
@@ -496,7 +484,6 @@ document.getElementById('changeSettingsBtn').addEventListener('click', () => {
 });
 
 function startGame() {
-  /* reset all state */
   score         = 0;
   level         = 1;
   lives         = 3;
@@ -505,59 +492,47 @@ function startGame() {
   wordsTyped    = 0;
   wordsMissed   = 0;
   gameStartTime = null;
-  lastSpawnTime = -9999; /* force first spawn immediately */
+  lastSpawnTime = -9999;
   activeWords   = [];
   gameRunning   = true;
   gamePaused    = false;
 
-  /* clear arena */
   arena.querySelectorAll('.falling-word, .score-popup').forEach(w => w.remove());
 
-  /* hide overlays */
   document.getElementById('startOverlay').style.display    = 'none';
   document.getElementById('gameOverOverlay').style.display = 'none';
 
-  /* reset UI */
   gameInput.value = '';
   gameInput.focus();
   pauseBtn.style.display = 'inline-flex';
   gameHint.textContent   = 'Type the falling words!';
 
-  /* reset sidebar */
-  document.getElementById('sideScore').textContent    = '0';
-  document.getElementById('sideLevel').textContent    = '1';
-  document.getElementById('sideWords').textContent    = '0';
-  document.getElementById('sideBestCombo').textContent= '0';
-  document.getElementById('sideMissed').textContent   = '0';
-  document.getElementById('sideWpm').textContent      = '—';
+  document.getElementById('sideScore').textContent     = '0';
+  document.getElementById('sideLevel').textContent     = '1';
+  document.getElementById('sideWords').textContent     = '0';
+  document.getElementById('sideBestCombo').textContent = '0';
+  document.getElementById('sideMissed').textContent    = '0';
+  document.getElementById('sideWpm').textContent       = '—';
 
   buildLives();
-
-  /* stop any old timers */
   clearInterval(levelTimer);
   cancelAnimationFrame(animFrameId);
-
-  /* level up every 25 seconds */
-  levelTimer = setInterval(levelUp, 25000);
-
-  /* kick off game loop */
+  levelTimer  = setInterval(levelUp, 25000);
   animFrameId = requestAnimationFrame(gameLoop);
 }
 
-/* ── Spawn word — uses fixed arena width, sets left synchronously ── */
+/* ── FIX #1: spawnWord — createElement block was completely missing ── */
 function spawnWord() {
   if (!gameRunning || gamePaused) return;
 
-  const cfg    = DIFF_CONFIG[currentDiff];
+  const cfg = DIFF_CONFIG[currentDiff];
   if (activeWords.length >= cfg.maxWords) return;
 
-  /* get arena width — use offsetWidth as reliable fallback */
-  const arenaW = arena.offsetWidth || 700;
-
+  const arenaW   = arena.offsetWidth || 700;
   const pool     = WORD_POOLS[currentDiff];
   const existing = activeWords.map(w => w.word);
 
-  /* pick unique word */
+  /* pick a unique word */
   let word;
   let tries = 0;
   do {
@@ -565,11 +540,22 @@ function spawnWord() {
     tries++;
   } while (existing.includes(word) && tries < 30);
 
-  /* create element */
-el.style.left = left + 'px';
-el.style.top  = '0px'; // Changed from -60px to start inside the arena
+  /* ── THIS ENTIRE BLOCK WAS MISSING — caused "el is not defined" ── */
+  const el = document.createElement('div');
+  el.className   = 'falling-word';
+  el.textContent = word;
 
-  /* fall duration — gets faster with level */
+  /* keep word fully inside arena horizontally */
+  const wordWidth = word.length * 12 + 32; /* approx px width */
+  const maxLeft   = Math.max(10, arenaW - wordWidth - 10);
+  const left      = Math.floor(Math.random() * maxLeft);
+
+  el.style.left = left + 'px';
+  el.style.top  = '-60px';           /* start just above arena */
+  arena.appendChild(el);
+  /* ── END OF MISSING BLOCK ── */
+
+  /* fall duration gets faster as level increases */
   const baseDuration = cfg.fallDuration;
   const minDuration  =
     currentDiff === 'hard'   ? 2500 :
@@ -585,7 +571,7 @@ el.style.top  = '0px'; // Changed from -60px to start inside the arena
     word,
     startTime: Date.now(),
     duration,
-    reached:   false
+    reached: false
   });
 }
 
@@ -597,37 +583,30 @@ function gameLoop(timestamp) {
     const cfg      = DIFF_CONFIG[currentDiff];
     const toRemove = [];
 
-    /* ── record start time on first real frame ── */
     if (!gameStartTime) gameStartTime = Date.now();
 
-    /* ── spawn check ── */
+    /* spawn check */
     if (timestamp - lastSpawnTime >= cfg.spawnInterval) {
       spawnWord();
       lastSpawnTime = timestamp;
     }
 
-    /* ── move words ── */
+    /* move words */
     activeWords.forEach((w, i) => {
       const elapsed  = Date.now() - w.startTime;
       const progress = Math.min(elapsed / w.duration, 1);
-
-      /* top goes from -60 to ARENA_HEIGHT */
-      const top = -60 + progress * (ARENA_HEIGHT + 60);
+      const top      = -60 + progress * (ARENA_HEIGHT + 60);
       w.el.style.top = Math.round(top) + 'px';
 
-      /* check if reached bottom */
       if (top >= ARENA_BOTTOM_THRESHOLD && !w.reached) {
         w.reached = true;
         w.el.classList.add('missed');
         toRemove.push(i);
-        setTimeout(() => {
-          if (w.el.parentNode) w.el.remove();
-        }, 350);
+        setTimeout(() => { if (w.el.parentNode) w.el.remove(); }, 350);
         missWord();
       }
     });
 
-    /* remove missed words */
     toRemove.reverse().forEach(i => activeWords.splice(i, 1));
 
     highlightClosest();
@@ -637,17 +616,14 @@ function gameLoop(timestamp) {
   animFrameId = requestAnimationFrame(gameLoop);
 }
 
-/* ── Highlight the word closest to bottom ── */
+/* ── Highlight word closest to bottom ── */
 function highlightClosest() {
   let closestIdx = -1;
   let closestTop = -Infinity;
 
   activeWords.forEach((w, i) => {
     const top = parseFloat(w.el.style.top || '-60');
-    if (top > closestTop) {
-      closestTop = top;
-      closestIdx = i;
-    }
+    if (top > closestTop) { closestTop = top; closestIdx = i; }
   });
 
   activeWords.forEach((w, i) => {
@@ -659,17 +635,11 @@ function highlightClosest() {
 function missWord() {
   wordsMissed++;
   combo = 0;
-
   lives = Math.max(0, lives - 1);
   updateLivesDisplay();
-
-  /* flash arena red */
   arena.classList.add('danger');
   setTimeout(() => arena.classList.remove('danger'), 600);
-
-  if (lives <= 0) {
-    setTimeout(() => endGame(), 600);
-  }
+  if (lives <= 0) setTimeout(() => endGame(), 600);
 }
 
 /* ── Input handler ── */
@@ -679,21 +649,14 @@ gameInput.addEventListener('input', () => {
   const typed = gameInput.value.trim().toLowerCase();
   if (!typed) return;
 
-  /* exact match check */
-  const matchIdx = activeWords.findIndex(
-    w => w.word.toLowerCase() === typed
-  );
+  const matchIdx = activeWords.findIndex(w => w.word.toLowerCase() === typed);
 
   if (matchIdx !== -1) {
     const matched = activeWords[matchIdx];
-
-    /* flash green */
     matched.el.classList.add('correct-flash');
     showScorePopup(matched.el, `+${10 * Math.max(combo + 1, 1)}`);
 
-    setTimeout(() => {
-      if (matched.el.parentNode) matched.el.remove();
-    }, 200);
+    setTimeout(() => { if (matched.el.parentNode) matched.el.remove(); }, 200);
 
     combo++;
     bestCombo  = Math.max(bestCombo, combo);
@@ -708,12 +671,9 @@ gameInput.addEventListener('input', () => {
     return;
   }
 
-  /* partial match — highlight word starting with typed text */
+  /* partial match highlight */
   activeWords.forEach(w => {
-    w.el.classList.toggle(
-      'active',
-      w.word.toLowerCase().startsWith(typed)
-    );
+    w.el.classList.toggle('active', w.word.toLowerCase().startsWith(typed));
   });
 });
 
@@ -725,9 +685,7 @@ function showScorePopup(wordEl, text) {
   popup.style.left  = wordEl.style.left || '50px';
   popup.style.top   = wordEl.style.top  || '100px';
   arena.appendChild(popup);
-  setTimeout(() => {
-    if (popup.parentNode) popup.remove();
-  }, 900);
+  setTimeout(() => { if (popup.parentNode) popup.remove(); }, 900);
 }
 
 /* ── Level up ── */
@@ -737,43 +695,31 @@ function levelUp() {
 
   const flash = document.createElement('div');
   flash.style.cssText = `
-    position:absolute;
-    inset:0;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    z-index:15;
-    pointer-events:none;
-    font-family:var(--font-display);
-    font-size:2.2rem;
-    font-weight:800;
-    color:var(--accent);
-    text-shadow: 0 0 30px rgba(79,126,201,0.8);
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    z-index:15; pointer-events:none;
+    font-family:var(--font-display); font-size:2.2rem; font-weight:800;
+    color:var(--accent); text-shadow: 0 0 30px rgba(79,126,201,0.8);
     animation: floatUp 1.4s ease forwards;
   `;
   flash.textContent = `⬆ Level ${level}!`;
   arena.appendChild(flash);
-  setTimeout(() => {
-    if (flash.parentNode) flash.remove();
-  }, 1400);
+  setTimeout(() => { if (flash.parentNode) flash.remove(); }, 1400);
 }
 
 /* ── Update all score displays ── */
 function updateScoreDisplay() {
-  const elapsed = gameStartTime
-    ? (Date.now() - gameStartTime) / 60000 : 0;
-  const wpm = elapsed > 0.01
-    ? Math.round(wordsTyped / elapsed) : 0;
+  const elapsed = gameStartTime ? (Date.now() - gameStartTime) / 60000 : 0;
+  const wpm     = elapsed > 0.01 ? Math.round(wordsTyped / elapsed) : 0;
 
   document.getElementById('scoreDisplay').textContent = `⭐ ${score}`;
   document.getElementById('levelDisplay').textContent = `🎯 Level ${level}`;
   document.getElementById('comboDisplay').textContent = `🔥 ${combo}x Combo`;
   document.getElementById('wpmDisplay').textContent   = `⚡ ${wpm} WPM`;
-
-  document.getElementById('sideScore').textContent  = score;
-  document.getElementById('sideLevel').textContent  = level;
-  document.getElementById('sideMissed').textContent = wordsMissed;
-  document.getElementById('sideWpm').textContent    = wpm || '—';
+  document.getElementById('sideScore').textContent    = score;
+  document.getElementById('sideLevel').textContent    = level;
+  document.getElementById('sideMissed').textContent   = wordsMissed;
+  document.getElementById('sideWpm').textContent      = wpm || '—';
 }
 
 /* ── Pause ── */
@@ -793,14 +739,12 @@ function endGame() {
   cancelAnimationFrame(animFrameId);
   pauseBtn.style.display = 'none';
 
-  /* clear remaining words */
   setTimeout(() => {
     arena.querySelectorAll('.falling-word').forEach(w => w.remove());
   }, 400);
 
-  const elapsed = gameStartTime
-    ? (Date.now() - gameStartTime) / 60000 : 0.01;
-  const wpm = Math.max(0, Math.round(wordsTyped / elapsed));
+  const elapsed = gameStartTime ? (Date.now() - gameStartTime) / 60000 : 0.01;
+  const wpm     = Math.max(0, Math.round(wordsTyped / elapsed));
 
   const emoji =
     score >= 500 ? '🏆' :
@@ -825,10 +769,7 @@ function saveHighScore(score, level, words, wpm) {
   const key = `pt_hs_${currentDiff}`;
   let hs = [];
   try { hs = JSON.parse(localStorage.getItem(key) || '[]'); } catch {}
-  hs.push({
-    score, level, words, wpm,
-    date: new Date().toLocaleDateString()
-  });
+  hs.push({ score, level, words, wpm, date: new Date().toLocaleDateString() });
   hs.sort((a, b) => b.score - a.score);
   hs.splice(5);
   localStorage.setItem(key, JSON.stringify(hs));
@@ -842,19 +783,14 @@ function renderHighScores() {
 
   const el = document.getElementById('highScoresList');
   if (!hs.length) {
-    el.innerHTML = `
-      <div style="color:var(--text-secondary);font-size:0.88rem;">
-        Play a game to set a score!
-      </div>`;
+    el.innerHTML = `<div style="color:var(--text-secondary);font-size:0.88rem;">
+      Play a game to set a score!</div>`;
     return;
   }
 
   el.innerHTML = hs.map((h, i) => `
     <div class="hs-row">
-      <span>
-        ${i===0?'🥇':i===1?'🥈':i===2?'🥉':`#${i+1}`}
-        &nbsp;${h.date}
-      </span>
+      <span>${i===0?'🥇':i===1?'🥈':i===2?'🥉':`#${i+1}`}&nbsp;${h.date}</span>
       <span style="font-weight:600;">⭐${h.score}</span>
     </div>
   `).join('');
@@ -864,6 +800,6 @@ function renderHighScores() {
 buildLives();
 renderHighScores();
 gameInput.focus();
-    </script>
-    </body>
+  </script>
+</body>
 </html>
