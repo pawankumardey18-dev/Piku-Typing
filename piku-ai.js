@@ -20,99 +20,75 @@ const PIKU_CONFIG = {
    Inspired by: short dark hair, thick frames,
    neat beard, smart-casual, 25 yrs old
 ════════════════════════════════════════ */
+/* ── PASTE THIS as the value of PIKU_AVATAR_SVG in piku-ai.js ── */
 const PIKU_AVATAR_SVG = `
 <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
   <defs>
-    <linearGradient id="pikuBg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#3a6bc5"/>
-      <stop offset="100%" style="stop-color:#7351b5"/>
+    <linearGradient id="robotBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#dce8f5"/>
+      <stop offset="100%" style="stop-color:#c8dff0"/>
     </linearGradient>
-    <clipPath id="pikuClip"><circle cx="40" cy="40" r="40"/></clipPath>
   </defs>
 
-  <!-- Background -->
-  <circle cx="40" cy="40" r="40" fill="url(#pikuBg)"/>
+  <!-- Outer glow background circle -->
+  <circle cx="40" cy="40" r="40" fill="url(#robotBg)"/>
 
-  <!-- Subtle background pattern -->
-  <circle cx="60" cy="15" r="25" fill="rgba(255,255,255,0.06)"/>
-  <circle cx="10" cy="65" r="18" fill="rgba(255,255,255,0.04)"/>
+  <!-- ── HEADSET band (behind head) ── -->
+  <path d="M18 36 Q18 14 40 14 Q62 14 62 36"
+        fill="none" stroke="#1a2535" stroke-width="5"
+        stroke-linecap="round"/>
 
-  <g clip-path="url(#pikuClip)">
-    <!-- Shirt / body -->
-    <ellipse cx="40" cy="82" rx="28" ry="16" fill="#2d3a6b"/>
-    <!-- Collar -->
-    <path d="M31 70 L40 75 L49 70 L53 82 L27 82Z" fill="#3d4f8a"/>
-    <!-- White collar line -->
-    <path d="M35 70 L40 74 L45 70" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+  <!-- Headset ear cups -->
+  <rect x="10" y="33" width="11" height="16" rx="5.5" fill="#1a2535"/>
+  <rect x="11.5" y="35" width="8" height="12" rx="4" fill="#2d3d55"/>
+  <rect x="59" y="33" width="11" height="16" rx="5.5" fill="#1a2535"/>
+  <rect x="60.5" y="35" width="8" height="12" rx="4" fill="#2d3d55"/>
 
-    <!-- Neck -->
-    <rect x="36" y="61" width="8" height="10" rx="3" fill="#c8956c"/>
+  <!-- ── ROBOT HEAD — dark rounded square ── -->
+  <rect x="20" y="22" width="40" height="38" rx="10" fill="#1a2535"/>
+  <!-- subtle inner highlight -->
+  <rect x="21" y="23" width="38" height="14" rx="9" fill="rgba(255,255,255,0.04)"/>
 
-    <!-- Head base -->
-    <ellipse cx="40" cy="43" rx="19" ry="21" fill="#c8956c"/>
+  <!-- ── HAPPY EYES — blue curved lines (closed smile style) ── -->
+  <!-- Left eye -->
+  <path d="M28 38 Q31.5 33.5 35 38"
+        fill="none" stroke="#5ab4f0" stroke-width="3"
+        stroke-linecap="round">
+    <animate attributeName="d"
+      values="M28 38 Q31.5 33.5 35 38;
+              M28 37.5 Q31.5 37 35 37.5;
+              M28 38 Q31.5 33.5 35 38"
+      dur="4s" begin="2s" repeatCount="indefinite"/>
+  </path>
+  <!-- Right eye -->
+  <path d="M45 38 Q48.5 33.5 52 38"
+        fill="none" stroke="#5ab4f0" stroke-width="3"
+        stroke-linecap="round">
+    <animate attributeName="d"
+      values="M45 38 Q48.5 33.5 52 38;
+              M45 37.5 Q48.5 37 52 37.5;
+              M45 38 Q48.5 33.5 52 38"
+      dur="4s" begin="2s" repeatCount="indefinite"/>
+  </path>
 
-    <!-- Hair — short, neat, dark -->
-    <ellipse cx="40" cy="25" rx="19" ry="11" fill="#1a1208"/>
-    <rect x="21" y="25" width="38" height="10" fill="#1a1208"/>
-    <!-- Hair fade sides -->
-    <rect x="21" y="30" width="5" height="14" rx="3" fill="#1a1208"/>
-    <rect x="54" y="30" width="5" height="14" rx="3" fill="#1a1208"/>
-    <!-- Hair top detail -->
-    <ellipse cx="40" cy="22" rx="15" ry="7" fill="#211608"/>
+  <!-- ── SMILE ── -->
+  <path d="M31 48 Q40 55 49 48"
+        fill="none" stroke="white" stroke-width="2.5"
+        stroke-linecap="round"/>
 
-    <!-- Ears -->
-    <ellipse cx="21.5" cy="45" rx="3.5" ry="5.5" fill="#b8845c"/>
-    <ellipse cx="58.5" cy="45" rx="3.5" ry="5.5" fill="#b8845c"/>
+  <!-- ── MIC ARM ── -->
+  <line x1="59" y1="47" x2="67" y2="54"
+        stroke="#1a2535" stroke-width="2.8" stroke-linecap="round"/>
+  <!-- Mic capsule -->
+  <circle cx="68" cy="56" r="3.5" fill="#1a2535"/>
+  <circle cx="68" cy="56" r="2" fill="#3a5070"/>
 
-    <!-- ── GLASSES (signature feature) ── -->
-    <!-- Frame left -->
-    <rect x="23" y="39" width="14" height="10" rx="3.5"
-          fill="rgba(0,0,0,0.07)" stroke="#111" stroke-width="2.2"/>
-    <!-- Frame right -->
-    <rect x="43" y="39" width="14" height="10" rx="3.5"
-          fill="rgba(0,0,0,0.07)" stroke="#111" stroke-width="2.2"/>
-    <!-- Bridge -->
-    <line x1="37" y1="44" x2="43" y2="44" stroke="#111" stroke-width="2"/>
-    <!-- Arms -->
-    <line x1="20" y1="44" x2="23" y2="44" stroke="#111" stroke-width="1.8"/>
-    <line x1="57" y1="44" x2="61" y2="44" stroke="#111" stroke-width="1.8"/>
-
-    <!-- Eyes (inside glasses) -->
-    <ellipse cx="30" cy="44" rx="4.5" ry="3.8" fill="white"/>
-    <ellipse cx="50" cy="44" rx="4.5" ry="3.8" fill="white"/>
-    <!-- Pupils with blink animation -->
-    <ellipse cx="30.5" cy="44" rx="2.2" ry="2.2" fill="#1a0d05">
-      <animate attributeName="ry" values="2.2;0.15;2.2;2.2;2.2" dur="5s" repeatCount="indefinite" begin="1.5s"/>
-    </ellipse>
-    <ellipse cx="50.5" cy="44" rx="2.2" ry="2.2" fill="#1a0d05">
-      <animate attributeName="ry" values="2.2;0.15;2.2;2.2;2.2" dur="5s" repeatCount="indefinite" begin="1.5s"/>
-    </ellipse>
-    <!-- Eye shine -->
-    <circle cx="32" cy="42.8" r="0.8" fill="white" opacity="0.7"/>
-    <circle cx="52" cy="42.8" r="0.8" fill="white" opacity="0.7"/>
-
-    <!-- Nose -->
-    <path d="M38 51 Q40 55 42 51" fill="none" stroke="#a0715a"
-          stroke-width="1.5" stroke-linecap="round"/>
-
-    <!-- ── BEARD (short, neat) ── -->
-    <path d="M25 57 Q30 64 40 66 Q50 64 55 57 Q53 65 50 67 Q40 71 30 67 Q27 65 25 57Z"
-          fill="#1a1208" opacity="0.68"/>
-    <!-- Mustache -->
-    <path d="M34 54 Q37 57 40 55 Q43 57 46 54"
-          fill="#1a1208" opacity="0.55"/>
-
-    <!-- Smile -->
-    <path d="M34 57 Q40 62 46 57"
-          fill="none" stroke="#8b4f2a" stroke-width="1.8" stroke-linecap="round"/>
-  </g>
-
-  <!-- Floating idle bob animation overlay — subtle -->
+  <!-- ── Idle bob animation ── -->
   <animateTransform
     attributeName="transform"
     type="translate"
-    values="0,0; 0,-1.5; 0,0"
-    dur="3.5s"
+    values="0,0; 0,-2; 0,0"
+    dur="3s"
     repeatCount="indefinite"
     additive="sum"/>
 </svg>`;
