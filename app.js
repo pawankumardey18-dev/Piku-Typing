@@ -22,115 +22,6 @@ const THEMES = [
   { name: 'Gold',    accent: '#b78e00', soft: '#faf4dc' },
 ];
 
-/* ── Word Banks ── */
-const WORDS = {
-  easy: [
-    'the','be','to','of','and','a','in','that','have','it',
-    'for','not','on','with','he','as','you','do','at','this',
-    'but','his','by','from','they','we','say','her','she','or',
-    'an','will','my','one','all','would','there','their','what',
-    'so','up','out','if','about','who','get','which','go','me',
-    'when','make','can','like','time','no','just','him','know',
-    'take','people','into','year','your','good','some','could',
-    'them','see','other','than','then','now','look','only','come',
-    'its','over','think','also','back','after','use','two','how',
-    'our','work','first','well','way','even','new','want','because'
-  ],
-  medium: [
-    'about','above','across','after','again','against','almost',
-    'alone','along','already','always','among','around','because',
-    'before','between','beyond','bring','build','change','check',
-    'choose','clear','close','could','count','cover','create',
-    'decide','define','design','detail','differ','direct','during',
-    'early','earth','either','enough','every','example','expect',
-    'explain','express','family','figure','final','first','follow',
-    'found','front','given','going','great','group','hands','happy',
-    'heard','heavy','hence','house','human','important','inside',
-    'instead','large','later','learn','leave','light','likely',
-    'listen','little','local','major','matter','maybe','moment',
-    'money','month','music','never','night','north','noted','often',
-    'order','other','paper','party','place','plain','plant','point',
-    'power','press','price','pride','quite','reach','ready','right'
-  ],
-  hard: [
-    'acknowledge','acquisition','administration','approximately',
-    'circumstance','collaboration','communication','comprehensive',
-    'consequently','consistently','contemplating','continuously',
-    'corresponding','determination','differentiate','disadvantage',
-    'disappointment','documentation','effectiveness','establishment',
-    'extraordinary','fundamental','implementation','independence',
-    'infrastructure','intelligence','international','investigation',
-    'manufacturing','miscellaneous','opportunities','organizational',
-    'overwhelming','participation','particularly','perspective',
-    'philosophical','predominantly','prioritization','responsibilities',
-    'sophisticated','straightforward','strengthening','substantially',
-    'transformation','understanding','unfortunately','unquestionably',
-    'accountability','accomplishment','characteristics','circumstances',
-    'classification','commemoration','conceptualization','consciousness',
-    'contradictions','counterproductive','decentralization','deliberation'
-  ]
-};
-
-/* ── Numbers Bank ── */
-const NUMBERS_BANK = (difficulty) => {
-  const nums = [];
-  for (let i = 0; i < 60; i++) {
-    if      (difficulty === 'easy')   nums.push(String(Math.floor(Math.random() * 99)));
-    else if (difficulty === 'medium') nums.push(String(Math.floor(Math.random() * 9999)));
-    else                              nums.push(String(Math.floor(Math.random() * 999999)));
-  }
-  return nums;
-};
-
-/* ── Punct Pools ── */
-const PUNCT_EASY = [
-  'hello,','world.','yes!','no?','wait...','done!','really?','okay,',
-  'fine.','sure!','maybe?','never!','always,','sometimes.','perhaps?',
-  'exactly!','almost,','nearly.','mostly!','often.','right?','indeed!'
-];
-
-const PUNCT_HARD = [
-  '"Really?!" she asked.','Wait—are you sure?','It\'s done... finally!',
-  'No! Not again...','Yes, but why though?','Fine. Whatever you say.',
-  'Almost—but not quite!','Hmm, perhaps not?','Clearly, this works!',
-  'Look out! It\'s there.','Oh well, never mind.','Stop! Think first.',
-  'Run—don\'t walk!','Wow, that\'s great!','So... what now?'
-];
-
-/* ── Code Pools ── */
-const CODE_EASY = [
-  'const x = 10;','let name = "Piku";','console.log("Hello!");',
-  'let sum = a + b;','const arr = [1, 2, 3];','let isOn = true;',
-  'x = x + 1;','return a + b;','let msg = "hi";','const n = 42;',
-  'arr.push(5);','let i = 0;',
-];
-
-const CODE_MEDIUM = [
-  'function add(a, b) { return a + b; }',
-  'if (x > 5) { console.log("big"); }',
-  'for (let i = 0; i < 10; i++) { console.log(i); }',
-  'arr.forEach(n => console.log(n));',
-  'const obj = { key: "value", num: 42 };',
-  'document.getElementById("app").style.display = "flex";',
-  'const sum = arr.reduce((a, b) => a + b, 0);',
-  'const doubled = arr.map(x => x * 2);',
-  'export default function App() { return <div>Hello</div>; }',
-  'import React, { useState } from "react";',
-  'const max = Math.max(...arr);',
-  'localStorage.setItem("key", JSON.stringify(data));',
-];
-
-const CODE_HARD = [
-  'async function getData() { const res = await fetch(url); return res.json(); }',
-  'const filtered = arr.filter(x => x % 2 === 0).map(x => x * 2);',
-  'class Animal { constructor(name) { this.name = name; } speak() { return this.name; } }',
-  'fetch("/api").then(r => r.json()).then(d => console.log(d)).catch(e => console.error(e));',
-  'const [count, setCount] = useState(0); useEffect(() => { fetchData(); }, [count]);',
-  'return Object.keys(obj).reduce((acc, key) => { acc[key] = obj[key] * 2; return acc; }, {});',
-  'const sorted = arr.sort((a, b) => b.wpm - a.wpm).slice(0, 10).map(e => e.name);',
-  'try { const data = JSON.parse(str); return data; } catch(e) { console.error(e); return null; }',
-];
-
 /* ── DOM References ── */
 const typingDisplay   = document.getElementById('typingDisplay');
 const hiddenInput     = document.getElementById('hiddenInput');
@@ -179,6 +70,15 @@ let correctChars      = 0;
 let totalTyped        = 0;
 let errorMap          = {};
 let sessionHistory    = [];
+
+/* ── Shuffle helper ── */
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
 
 /* ==========================================
    FIX #4 — KEYBOARD CLICK SOUNDS
@@ -434,30 +334,25 @@ function generateTest() {
   let words = [];
 
   if (currentMode === 'words') {
-    let pool;
-    if      (currentDifficulty === 'easy')   pool = [...WORDS.easy];
-    else if (currentDifficulty === 'medium') pool = [...WORDS.medium];
-    else                                     pool = [...WORDS.hard];
-    pool.sort(() => Math.random() - 0.5);
+    const pool = shuffle([...WORD_BANK[currentDifficulty]]);
     words = pool.slice(0, 80);
 
   } else if (currentMode === 'numbers') {
-    words = NUMBERS_BANK(currentDifficulty);
+    words = NUMBER_BANK[currentDifficulty]();
 
   } else if (currentMode === 'punct') {
-    const pool = currentDifficulty === 'hard'
-      ? [...PUNCT_HARD] : [...PUNCT_EASY];
-    pool.sort(() => Math.random() - 0.5);
-    words = Array.from({ length: 40 }, () =>
-      pool[Math.floor(Math.random() * pool.length)]);
+    const pool = shuffle([...PUNCT_BANK[currentDifficulty]]);
+    words = Array.from({ length: 40 }, () => pool[Math.floor(Math.random() * pool.length)]);
 
   } else if (currentMode === 'code') {
-    let pool;
-    if      (currentDifficulty === 'easy')   pool = [...CODE_EASY];
-    else if (currentDifficulty === 'medium') pool = [...CODE_MEDIUM];
-    else                                     pool = [...CODE_HARD];
-    pool.sort(() => Math.random() - 0.5);
+    const pool = shuffle([...CODE_BANK[currentDifficulty]]);
     words = pool.slice(0, 10);
+
+  } else if (currentMode === 'sentences') {
+    words = shuffle([...SENTENCE_BANK]).slice(0, 8);
+
+  } else if (currentMode === 'paragraphs') {
+    words = shuffle([...PARAGRAPH_BANK]).slice(0, 1);
   }
 
   testWords = words;
