@@ -52,7 +52,6 @@ let currentMode       = 'words';
 let currentTime       = 30;
 let currentTheme      = 0;
 let currentDifficulty = 'easy';
-let isDark            = false;
 let currentUser       = null;
 let isGuest           = false;
 let leaderboardTab    = 'personal';
@@ -224,9 +223,6 @@ function waitForFirebase() {
    PREFERENCES
    ========================================== */
 function loadPrefs() {
-  isDark = localStorage.getItem('pt_dark') === 'true';
-  document.body.classList.toggle('dark', isDark);
-
   currentTheme = parseInt(localStorage.getItem('pt_theme') || '0');
   applyTheme(currentTheme);
 
@@ -242,7 +238,6 @@ function loadPrefs() {
 }
 
 function savePrefs() {
-  localStorage.setItem('pt_dark',  isDark);
   localStorage.setItem('pt_theme', currentTheme);
   localStorage.setItem('pt_mode',  currentMode);
   localStorage.setItem('pt_time',  currentTime);
@@ -861,18 +856,22 @@ function drawChart(history) {
 
   if (!history.length) return;
 
+  const darkTheme = ['midnight','forest','slate'].includes(
+    document.documentElement.getAttribute('data-theme') || 'midnight'
+  );
+
   const accent = THEMES[currentTheme].accent;
   const data   = history.slice(-15);
   const maxWpm = Math.max(...data.map(d => d.wpm), 1);
   const pad    = 30;
   const stepX  = (w - pad * 2) / Math.max(data.length - 1, 1);
 
-  ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+  ctx.strokeStyle = darkTheme ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
   ctx.lineWidth   = 1;
   [0.25, 0.5, 0.75, 1].forEach(f => {
     const y = h - pad - f * (h - pad * 2);
     ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(w - pad, y); ctx.stroke();
-    ctx.fillStyle = isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)';
+    ctx.fillStyle = darkTheme ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)';
     ctx.font = '11px monospace';
     ctx.fillText(Math.round(f * maxWpm), 2, y + 4);
   });
@@ -910,11 +909,11 @@ function drawChart(history) {
     ctx.arc(x, y, 5, 0, Math.PI * 2);
     ctx.fillStyle   = accent;
     ctx.fill();
-    ctx.strokeStyle = isDark ? '#1c1e2a' : '#fff';
+    ctx.strokeStyle = darkTheme ? '#1c1e2a' : '#fff';
     ctx.lineWidth   = 2;
     ctx.stroke();
 
-    ctx.fillStyle = isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.35)';
+    ctx.fillStyle = darkTheme ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.35)';
     ctx.font = '9px monospace';
     const label = d.date
       ? new Date(d.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -962,19 +961,6 @@ function setupHeaderActions() { renderHeader(); }
 
 async function renderHeader() {
   headerActions.innerHTML = '';
-
-  const darkBtn       = document.createElement('button');
-  darkBtn.id          = 'darkToggle';
-  darkBtn.className   = 'btn';
-  darkBtn.textContent = isDark ? '☀️ Light' : '🌙 Dark';
-  darkBtn.addEventListener('click', () => {
-    isDark = !isDark;
-    document.body.classList.toggle('dark', isDark);
-    savePrefs();
-    darkBtn.textContent = isDark ? '☀️ Light' : '🌙 Dark';
-    drawChart(sessionHistory);
-  });
-  headerActions.appendChild(darkBtn);
 
   if (currentUser) {
     let coins = 0;

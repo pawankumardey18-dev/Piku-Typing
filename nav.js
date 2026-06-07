@@ -560,6 +560,59 @@
     hamburger.addEventListener('click', openSidebar);
     existingHeader.insertBefore(hamburger, existingHeader.firstChild);
 
+    /* ── Theme Switcher ── */
+    const SITE_THEMES = [
+      { key: 'midnight', label: '🌙 Midnight', title: 'Midnight Blue' },
+      { key: 'soft',     label: '☀️ Soft',     title: 'Soft Light' },
+      { key: 'forest',   label: '🌿 Forest',   title: 'Forest' },
+      { key: 'slate',    label: '🩶 Slate',    title: 'Slate' },
+    ];
+
+    function applyTheme(key) {
+      document.documentElement.setAttribute('data-theme', key);
+      try { localStorage.setItem('pt_site_theme', key); } catch {}
+    }
+
+    function loadSavedTheme() {
+      const saved = localStorage.getItem('pt_site_theme') || 'midnight';
+      applyTheme(saved);
+      return saved;
+    }
+
+    const currentThemeKey = loadSavedTheme();
+
+    /* Build the switcher buttons and inject into header-actions */
+    const headerActions = existingHeader.querySelector('.header-actions') ||
+                          existingHeader.querySelector('#headerActions');
+
+    if (headerActions) {
+      const themeWrap = document.createElement('div');
+      themeWrap.className = 'site-theme-switcher';
+      themeWrap.id = 'siteThemeSwitcher';
+
+      SITE_THEMES.forEach(t => {
+        const btn = document.createElement('button');
+        btn.className = 'site-theme-btn' + (t.key === currentThemeKey ? ' active' : '');
+        btn.textContent = t.label;
+        btn.title = t.title;
+        btn.dataset.themeKey = t.key;
+        btn.addEventListener('click', () => {
+          applyTheme(t.key);
+          document.querySelectorAll('.site-theme-btn').forEach(b =>
+            b.classList.toggle('active', b.dataset.themeKey === t.key)
+          );
+          /* Sync app.js chart redraw if on index page */
+          if (typeof drawChart === 'function' && typeof sessionHistory !== 'undefined') {
+            drawChart(sessionHistory);
+          }
+        });
+        themeWrap.appendChild(btn);
+      });
+
+      /* Insert theme switcher BEFORE existing content in header-actions */
+      headerActions.insertBefore(themeWrap, headerActions.firstChild);
+    }
+
     /* Top nav links (desktop — hidden on mobile via CSS) */
     const topNav = document.createElement('nav');
     topNav.className = 'main-nav';
@@ -1001,22 +1054,5 @@ Last 5 sessions: ${JSON.stringify(history)}`;
   if (resultDetails) {
     resultObserver.observe(resultDetails, { childList: true, subtree: true });
   }
-
-  /* ── Dark mode sync ── */
-  const darkToggle = document.getElementById('darkToggle');
-  if (darkToggle) {
-    darkToggle.addEventListener('click', () => {
-      const isDark = document.body.classList.contains('dark');
-      try { localStorage.setItem('pt_dark', isDark); } catch {}
-    });
-  }
-
-  /* Apply saved dark mode */
-  try {
-    if (localStorage.getItem('pt_dark') === 'true') {
-      document.body.classList.add('dark');
-      if (darkToggle) darkToggle.textContent = '☀️ Light';
-    }
-  } catch {}
 
 })();
