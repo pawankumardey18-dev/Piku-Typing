@@ -358,26 +358,7 @@
    game.html — Falling Words Game
    BUG FIXES:
    1. spawnWord() — createElement block was missing entirely (el was undefined)
-   2. darkToggle addEventListener — opening line was missing (syntax error killed whole script)
    ========================================== */
-
-/* ── FIX #2: Dark mode toggle — addEventListener was missing its opening line ── */
-const darkToggle = document.getElementById('darkToggle');
-let isDark = false;
-try {
-  isDark = localStorage.getItem('pt_dark') === 'true';
-} catch (e) {
-  console.warn('Storage blocked; defaulting to light mode.');
-}
-document.body.classList.toggle('dark', isDark);
-darkToggle.textContent = isDark ? '☀️ Light' : '🌙 Dark';
-
-darkToggle.addEventListener('click', () => {       // ← THIS LINE WAS MISSING
-  isDark = !isDark;
-  document.body.classList.toggle('dark', isDark);
-  try { localStorage.setItem('pt_dark', isDark); } catch (e) {}
-  darkToggle.textContent = isDark ? '☀️ Light' : '🌙 Dark';
-});
 
 /* ── Word pools ── */
 const WORD_POOLS = {

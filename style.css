@@ -483,11 +483,6 @@ body {
   background: rgba(31,139,76,0.08);
 }
 
-body.dark .char.correct {
-  color: #7ee0a0;
-  background: rgba(126,224,160,0.1);
-}
-
 .char.incorrect {
   color: var(--error-text);
   background: var(--error-bg);
@@ -687,7 +682,6 @@ canvas {
 }
 
 .key-chip.error { background: #f4b8b8; color: #8b0000; }
-body.dark .key-chip.error { background: #5a1f1f; color: #ffb0a8; }
 
 /* ==========================================
    FOOTER
@@ -800,12 +794,6 @@ footer strong { font-weight: 600; color: var(--text-primary); }
   box-shadow: 0 4px 16px rgba(0,0,0,0.12);
   border-color: #bbb;
   transform: translateY(-1px);
-}
-
-body.dark .google-signin-btn {
-  background: #2a2d3d;
-  border-color: var(--border-light);
-  color: var(--text-primary);
 }
 
 .guest-skip {
@@ -1040,15 +1028,6 @@ body.dark .google-signin-btn {
   border-color: var(--accent) !important;
   z-index: 2;
 }
-
-body.dark .kb-key.finger-l-pinky  { background: #3a1a28; color: #f4a8c4; }
-body.dark .kb-key.finger-l-ring   { background: #3a2a10; color: #f4c88a; }
-body.dark .kb-key.finger-l-middle { background: #102a1a; color: #8ad4a8; }
-body.dark .kb-key.finger-l-index  { background: #101e3a; color: #8aaef4; }
-body.dark .kb-key.finger-r-index  { background: #0a2a24; color: #8ad4c4; }
-body.dark .kb-key.finger-r-middle { background: #3a0a18; color: #f4a8b8; }
-body.dark .kb-key.finger-r-ring   { background: #2a2400; color: #d4c48a; }
-body.dark .kb-key.finger-r-pinky  { background: #200a3a; color: #c48af4; }
 
 /* Lesson sidebar */
 .lesson-sidebar .card { padding: 1.4rem; }
