@@ -12,14 +12,8 @@
 const THEMES = [
   { name: 'Blue',    accent: '#4f7ec9', soft: '#e8eff9' },
   { name: 'Purple',  accent: '#7351b5', soft: '#ede8f9' },
-  { name: 'Teal',    accent: '#0e9e82', soft: '#e0f4f0' },
-  { name: 'Rose',    accent: '#d04b7a', soft: '#fce8f0' },
-  { name: 'Orange',  accent: '#d46b1a', soft: '#fdf0e3' },
   { name: 'Green',   accent: '#2e8b57', soft: '#e3f4ea' },
   { name: 'Red',     accent: '#c0241c', soft: '#fde8e7' },
-  { name: 'Indigo',  accent: '#4a5cc0', soft: '#e8eaf9' },
-  { name: 'Cyan',    accent: '#0891b2', soft: '#e0f5fa' },
-  { name: 'Gold',    accent: '#b78e00', soft: '#faf4dc' },
 ];
 
 /* ── DOM References ── */
@@ -958,6 +952,9 @@ function updateHeatmap() {
    HEADER ACTIONS
    ========================================== */
 function setupHeaderActions() { renderHeader(); }
+
+/* Ensure unified nav + consistent layout */
+setupHeaderActions();
 
 async function renderHeader() {
   headerActions.innerHTML = '';

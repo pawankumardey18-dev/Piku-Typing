@@ -715,13 +715,14 @@ async function sendMessage(overrideText) {
   try {
     reply = await askPiku(text);
   } catch (e) {
-    reply = "Something went wrong on my end — try again! 🙃";
+    reply = "Professor Piku bot got hiccuped—try again in a moment. 🙃";
   }
 
   typingEl.remove();
   pikuBusy = false;
   sendBtn.disabled = false;
 
+  /* Always show assistant reply */
   pikuHistory.push({ role: 'assistant', content: reply });
   if (pikuHistory.length > 24) pikuHistory.splice(0, 2);
 
@@ -739,12 +740,8 @@ function addMessage(role, text) {
   const avatarEl = document.createElement('div');
   avatarEl.className = 'piku-msg-avatar';
 
-  if (role === 'assistant') {
-    avatarEl.innerHTML = PIKU_AVATAR_SVG;
-  } else {
-    avatarEl.style.cssText = 'background:var(--accent);display:flex;align-items:center;justify-content:center;color:white;font-size:0.8rem;font-weight:700;';
-    avatarEl.textContent = '👤';
-  }
+  /* Unified avatar: Professor Piku for BOTH sides */
+  avatarEl.innerHTML = PIKU_AVATAR_SVG;
 
   const bubble = document.createElement('div');
   bubble.className = 'piku-bubble-text';
